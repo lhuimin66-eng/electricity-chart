@@ -177,7 +177,8 @@ function render() {
   const dates = data.map(i => i.日期);
   const gen = data.map(i => +i['发电侧总成交量（MWh）'] || 0);
   const use = data.map(i => +i['用户侧总成交量（MWh)'] || 0);
-  const price = data.map(i => i['用户侧平均价（元/MWh）'] || null);
+  // 👇 这里修复！把 null 改成 0
+  const price = data.map(i => i['用户侧平均价（元/MWh）'] || 0);
 
   charts.gen.data.labels = dates; charts.gen.data.datasets[0].data = gen; charts.gen.update();
   charts.user.data.labels = dates; charts.user.data.datasets[0].data = use; charts.user.update();
