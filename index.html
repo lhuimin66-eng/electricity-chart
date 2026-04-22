@@ -28,8 +28,10 @@
   <div class="select-box">
     <select id="period">
       <option value="all">📅 全部数据</option>
-      <option value="1-15">1月 1日 - 15日</option>
-      <option value="16-31">1月 16日 - 31日</option>
+      <option value="1-15">1月 1日-15日</option>
+      <option value="16-31">1月 16日-31日</option>
+      <option value="2-15">2月 1日-15日</option>
+      <option value="16-28">2月 16日-28日</option>
     </select>
   </div>
 
@@ -65,7 +67,6 @@
 let allData = [];
 let charts = {};
 
-// 初始化图表（悬浮提示 100% 开启）
 function initCharts() {
   const config = {
     responsive: true,
@@ -85,25 +86,16 @@ function initCharts() {
   };
 
   charts.gen = new Chart(document.getElementById('chartGen'), {
-    type: 'line',
-    data: { labels: [], datasets: [{ label: '发电侧', data: [], borderColor: '#2563eb', tension: 0.3 }] },
-    options: config
+    type: 'line', data: { labels: [], datasets: [{ label: '发电侧', data: [], borderColor: '#2563eb', tension: 0.3 }] }, options: config
   });
-
   charts.user = new Chart(document.getElementById('chartUser'), {
-    type: 'line',
-    data: { labels: [], datasets: [{ label: '用户侧', data: [], borderColor: '#0891b2', tension: 0.3 }] },
-    options: config
+    type: 'line', data: { labels: [], datasets: [{ label: '用户侧', data: [], borderColor: '#0891b2', tension: 0.3 }] }, options: config
   });
-
   charts.price = new Chart(document.getElementById('chartPrice'), {
-    type: 'line',
-    data: { labels: [], datasets: [{ label: '电价', data: [], borderColor: '#ea580c', tension: 0.3 }] },
-    options: config
+    type: 'line', data: { labels: [], datasets: [{ label: '电价', data: [], borderColor: '#ea580c', tension: 0.3 }] }, options: config
   });
 }
 
-// 加载数据
 async function loadData() {
   try {
     const res = await fetch('data.json?v='+Date.now());
@@ -115,20 +107,20 @@ async function loadData() {
   }
 }
 
-// 日期筛选（正确版本）
 function filterData() {
   const v = document.getElementById('period').value;
   if (v === 'all') return allData;
 
   return allData.filter(item => {
-    const day = parseInt(item.日期.split('.')[1]);
-    if (v === '1-15') return day >= 1 && day <= 15;
-    if (v === '16-31') return day >= 16 && day <= 31;
+    const [month, day] = item.日期.split('.').map(Number);
+    if (v === '1-15') return month === 1 && day >= 1 && day <= 15;
+    if (v === '16-31') return month === 1 && day >= 16 && day <= 31;
+    if (v === '2-15') return month === 2 && day >= 1 && day <= 15;
+    if (v === '16-28') return month === 2 && day >= 16 && day <= 28;
     return true;
   });
 }
 
-// 刷新图表 + 表格
 function render() {
   const data = filterData();
   const dates = data.map(i => i.日期);
