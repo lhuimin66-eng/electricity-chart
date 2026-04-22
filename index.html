@@ -92,7 +92,34 @@
       <tbody id="tableBody"></tbody>
     </table>
   </div>
+<!-- ========================================== -->
+<!-- 👇 在这里粘贴我给你的 供需差异分析表格 👇 -->
+<!-- ========================================== -->
+<div class="card">
+  <h2>📊 供需差异分析（发电 - 用电）</h2>
+  <div style="font-size:13px; margin-bottom:8px;">
+    <span style="color:green">🟢 绿色 = 发电盈余</span> &nbsp;&nbsp;
+    <span style="color:red">🔴 红色 = 用电缺口</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>日期</th>
+        <th>发电侧</th>
+        <th>用户侧</th>
+        <th>供需差值</th>
+      </tr>
+    </thead>
+    <tbody id="diffTableBody"></tbody>
+  </table>
+</div>
 
+<div class="analysis-box">
+  <h3>📌 差异解读</h3>
+  <p>• 差值为负：用电 > 发电 → 电力偏紧</p>
+  <p>• 差值为正：发电 > 用电 → 电力宽松</p>
+  <p>• 差值越大，供需越失衡，电价波动越明显</p>
+</div>
 <script>
 let allData = [];
 let charts = {};
@@ -193,11 +220,29 @@ function render() {
   `).join('');
 
   updateAnalysis();
+  renderDiffTable(data);
 }
 
 document.getElementById('period').addEventListener('change', render);
 initCharts();
 loadData();
+  // 供需差异表格
+function renderDiffTable(data) {
+  document.getElementById('diffTableBody').innerHTML = data.map(row => {
+    const gen = +row['发电侧总成交量（MWh）'] || 0;
+    const use = +row['用户侧总成交量（MWh)'] || 0;
+    const diff = gen - use;
+    const color = diff >= 0 ? 'green' : 'red';
+    
+    return `
+    <tr>
+      <td>${row.日期}</td>
+      <td>${gen.toLocaleString()}</td>
+      <td>${use.toLocaleString()}</td>
+      <td style="color:${color}; font-weight:bold">${diff.toLocaleString()}</td>
+    </tr>`;
+  }).join('');
+}
 </script>
 </body>
 </html>
