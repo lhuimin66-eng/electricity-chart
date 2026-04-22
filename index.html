@@ -129,17 +129,17 @@
         scales: { x: { grid: { display: false } } }
       };
 
-      chart1 = new Chart(chart1, {
+      chart1 = new Chart(document.getElementById('chart1'), {
         type: 'line',
         data: { labels: [], datasets: [{ label: '发电侧', data: [], borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.1)', fill: true, tension: 0.3 }] },
         options: commonOpts
       });
-      chart2 = new Chart(chart2, {
+      chart2 = new Chart(document.getElementById('chart2'), {
         type: 'line',
         data: { labels: [], datasets: [{ label: '用户侧', data: [], borderColor: '#0891b2', backgroundColor: 'rgba(8,145,178,0.1)', fill: true, tension: 0.3 }] },
         options: commonOpts
       });
-      chart3 = new Chart(chart3, {
+      chart3 = new Chart(document.getElementById('chart3'), {
         type: 'line',
         data: { labels: [], datasets: [{ label: '电价', data: [], borderColor: '#ea580c', backgroundColor: 'rgba(234,88,12,0.1)', fill: true, tension: 0.3 }] },
         options: commonOpts
@@ -153,9 +153,9 @@
         const data = await res.json();
 
         const dates = data.map(i => i.日期);
-        const gen = data.map(i => +i['发电侧总成交量（MWh）']);
-        const use = data.map(i => +i['用户侧总成交量（MWh)']);
-        const price = data.map(i => +i['用户侧总平均价（元/MWh）']);
+        const gen = data.map(i => parseFloat(i['发电侧总成交量（MWh）'] || 0));
+        const use = data.map(i => parseFloat(i['用户侧总成交量（MWh)'] || 0));
+        const price = data.map(i => parseFloat(i['用户侧总平均价（元/MWh）'] || 0));
 
         // 更新图表
         chart1.data.labels = dates; chart1.data.datasets[0].data = gen; chart1.update();
@@ -169,16 +169,17 @@
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>${row.日期}</td>
-            <td>${parseFloat(row['发电侧总成交量（MWh）']).toLocaleString()}</td>
-            <td>${parseFloat(row['用户侧总成交量（MWh)']).toLocaleString()}</td>
-            <td>${row['用户侧总平均价（元/MWh）']}</td>
+            <td>${parseFloat(row['发电侧总成交量（MWh）'] || 0).toLocaleString()}</td>
+            <td>${parseFloat(row['用户侧总成交量（MWh)'] || 0).toLocaleString()}</td>
+            <td>${parseFloat(row['用户侧总平均价（元/MWh）'] || 0)}</td>
           `;
           tbody.appendChild(tr);
         });
 
         document.getElementById('status').innerText = `✅ 数据加载成功 | ${new Date().toLocaleString()}`;
       } catch (e) {
-        document.getElementById('status').innerText = "❌ 加载失败";
+        document.getElementById('status').innerText = "❌ 加载失败：" + e.message;
+        console.error(e);
       }
     }
 
