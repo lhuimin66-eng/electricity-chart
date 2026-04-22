@@ -73,8 +73,27 @@
       const commonOpts = {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: { x: { grid: { display: false } } }
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            backgroundColor: 'rgba(0,0,0,0.8)',
+            padding: 10,
+            titleFont: { size: 14 },
+            bodyFont: { size: 13 },
+            callbacks: {
+              label: function(context) {
+                return context.dataset.label + '：' + context.raw.toLocaleString();
+              }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: { ticks: { callback: v => v.toLocaleString() } }
+        },
+        hover: { mode: 'index', intersect: false }
       };
 
       chart1 = new Chart(document.getElementById('chart1'), {
