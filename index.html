@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>电力现货数据可视化</title>
+  <title>电力现货数据可视化平台</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * {
@@ -13,48 +13,60 @@
       font-family: system-ui, -apple-system, sans-serif;
     }
     body {
-      background: #f5f7fa;
+      background-color: #f5f7fa;
       padding: 20px;
       max-width: 1200px;
       margin: 0 auto;
     }
     h1 {
       text-align: center;
-      margin-bottom: 8px;
-      font-size: 22px;
+      color: #1e293b;
+      margin-bottom: 10px;
     }
-    .status {
+    .status-bar {
       text-align: center;
-      color: #666;
+      color: #64748b;
       font-size: 14px;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
-    .select-box {
+    .select-wrapper {
       text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: 25px;
     }
-    #period {
-      padding: 10px 14px;
+    #periodSelect {
+      padding: 10px 15px;
       border-radius: 8px;
-      border: 1px solid #ccc;
+      border: 1px solid #cbd5e1;
       font-size: 14px;
       min-width: 220px;
     }
-    .card {
+    .chart-card {
       background: white;
       border-radius: 12px;
       padding: 20px;
       margin-bottom: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
     }
-    .card h2 {
+    .chart-card h2 {
       font-size: 16px;
-      margin-bottom: 12px;
-      color: #333;
+      color: #334155;
+      margin-bottom: 15px;
     }
     canvas {
       width: 100% !important;
       height: 280px !important;
+    }
+    .table-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    .table-card h2 {
+      font-size: 16px;
+      color: #334155;
+      margin-bottom: 15px;
     }
     table {
       width: 100%;
@@ -66,127 +78,132 @@
       border-bottom: 1px solid #eee;
     }
     th {
-      background: #f8f9fa;
+      background: #f7f9fc;
+      font-weight: 600;
     }
   </style>
 </head>
-
 <body>
-  <h1>⚡ 电力现货数据可视化平台</h1>
-  <div class="status" id="status">加载中...</div>
 
-  <div class="select-box">
-    <select id="period">
-      <option value="all">📅 全部数据</option>
-      <option value="1-15">1月 1日 - 15日</option>
-      <option value="16-31">1月 16日 - 31日</option>
-    </select>
-  </div>
+<h1>⚡ 电力现货数据可视化平台</h1>
+<div class="status-bar" id="status">加载中...</div>
 
-  <div class="card">
-    <h2>📈 发电侧成交量</h2>
-    <canvas id="chartGen"></canvas>
-  </div>
-  <div class="card">
-    <h2>📊 用户侧成交量</h2>
-    <canvas id="chartUser"></canvas>
-  </div>
-  <div class="card">
-    <h2>💰 用户侧平均电价</h2>
-    <canvas id="chartPrice"></canvas>
-  </div>
+<div class="select-wrapper">
+  <select id="periodSelect">
+    <option value="all">📅 全部数据</option>
+    <option value="1-15">1月 1日-15日</option>
+    <option value="16-31">1月 16日-31日</option>
+  </select>
+</div>
 
-  <div class="card">
-    <h2>📋 详细数据（同步筛选）</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>日期</th>
-          <th>发电侧</th>
-          <th>用户侧</th>
-          <th>均价</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-  </div>
+<div class="chart-card">
+  <h2>📈 发电侧成交量</h2>
+  <canvas id="chart1"></canvas>
+</div>
+<div class="chart-card">
+  <h2>📊 用户侧成交量</h2>
+  <canvas id="chart2"></canvas>
+</div>
+<div class="chart-card">
+  <h2>💰 用户侧平均电价</h2>
+  <canvas id="chart3"></canvas>
+</div>
+
+<div class="table-card">
+  <h2>📋 详细数据</h2>
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th>日期</th>
+        <th>发电侧</th>
+        <th>用户侧</th>
+        <th>均价</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
 
 <script>
+  let chart1, chart2, chart3;
   let allData = [];
-  let charts = {};
 
   // 初始化图表
   function initCharts() {
-    const cfg = {
+    const opt = {
       responsive: true,
       maintainAspectRatio: false,
       plugins: { legend: false },
       scales: { x: { grid: { display: false } } }
     };
 
-    charts.gen = new Chart(document.getElementById('chartGen'), {
-      type: 'line', data: { labels: [], datasets: [{ data: [], borderColor: '#2563eb', tension: 0.3 }] }, options: cfg
+    chart1 = new Chart(document.getElementById('chart1'), {
+      type: 'line', data: { labels: [], datasets: [{ data: [], borderColor: '#2563eb', tension: 0.3 }] }, options: opt
     });
-    charts.user = new Chart(document.getElementById('chartUser'), {
-      type: 'line', data: { labels: [], datasets: [{ data: [], borderColor: '#0891b2', tension: 0.3 }] }, options: cfg
+    chart2 = new Chart(document.getElementById('chart2'), {
+      type: 'line', data: { labels: [], datasets: [{ data: [], borderColor: '#0891b2', tension: 0.3 }] }, options: opt
     });
-    charts.price = new Chart(document.getElementById('chartPrice'), {
-      type: 'line', data: { labels: [], datasets: [{ data: [], borderColor: '#ea580c', tension: 0.3 }] }, options: cfg
+    chart3 = new Chart(document.getElementById('chart3'), {
+      type: 'line', data: { labels: [], datasets: [{ data: [], borderColor: '#ea580c', tension: 0.3 }] }, options: opt
     });
   }
 
   // 加载数据
   async function loadData() {
     try {
-      const res = await fetch('data.json?v='+Date.now());
+      let res = await fetch('data.json');
       allData = await res.json();
-      render();
-      document.getElementById('status').innerText = "✅ 数据加载完成";
+      refresh();
+      document.getElementById('status').innerText = '✅ 数据加载完成 | ' + new Date().toLocaleString();
     } catch (e) {
-      document.getElementById('status').innerText = "❌ 加载失败";
+      document.getElementById('status').innerText = '❌ 加载失败';
     }
   }
 
-  // 筛选日期（真正能工作的版本！）
-  function getFilteredData() {
-    const v = document.getElementById('period').value;
-    if (v === 'all') return allData;
+  // 关键！按日期筛选（这次用字符串分割，绝对不会出错）
+  function filterData() {
+    const val = document.getElementById('periodSelect').value;
+    if (val === 'all') return allData;
 
-    return allData.filter(item => {
-      const day = parseFloat(item.日期);
-      if (v === '1-15') return day >= 1 && day <= 15;
-      if (v === '16-31') return day >= 16 && day <= 31;
+    return allData.filter(row => {
+      // 把 "1.1" 转成 day = 1，"1.15" 转成 day = 15
+      const parts = row.日期.split('.');
+      const day = parseInt(parts[1], 10);
+      if (val === '1-15') return day >= 1 && day <= 15;
+      if (val === '16-31') return day >= 16 && day <= 31;
       return true;
     });
   }
 
-  // 统一刷新：图表 + 表格
-  function render() {
-    const data = getFilteredData();
+  // 统一刷新图表和表格
+  function refresh() {
+    const data = filterData();
     const dates = data.map(i => i.日期);
     const gen = data.map(i => +i['发电侧总成交量（MWh）'] || 0);
     const use = data.map(i => +i['用户侧总成交量（MWh)'] || 0);
     const price = data.map(i => +i['用户侧总平均价（元/MWh）'] || 0);
 
-    // 刷新图表
-    charts.gen.data.labels = dates; charts.gen.data.datasets[0].data = gen; charts.gen.update();
-    charts.user.data.labels = dates; charts.user.data.datasets[0].data = use; charts.user.update();
-    charts.price.data.labels = dates; charts.price.data.datasets[0].data = price; charts.price.update();
+    // 更新图表
+    chart1.data.labels = dates; chart1.data.datasets[0].data = gen; chart1.update();
+    chart2.data.labels = dates; chart2.data.datasets[0].data = use; chart2.update();
+    chart3.data.labels = dates; chart3.data.datasets[0].data = price; chart3.update();
 
-    // 刷新表格
-    const tb = document.getElementById('tableBody');
-    tb.innerHTML = data.map(row => `
+    // 更新表格
+    const tbody = document.querySelector('#dataTable tbody');
+    tbody.innerHTML = '';
+    data.forEach(row => {
+      tbody.innerHTML += `
       <tr>
         <td>${row.日期}</td>
         <td>${parseFloat(row['发电侧总成交量（MWh）'] || 0).toLocaleString()}</td>
         <td>${parseFloat(row['用户侧总成交量（MWh)'] || 0).toLocaleString()}</td>
         <td>${row['用户侧总平均价（元/MWh）']}</td>
-      </tr>
-    `).join('');
+      </tr>`;
+    });
   }
 
-  // 切换下拉框立即刷新
-  document.getElementById('period').addEventListener('change', render);
+  // 下拉框切换触发刷新
+  document.getElementById('periodSelect').addEventListener('change', refresh);
 
   // 启动
   initCharts();
