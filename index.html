@@ -178,8 +178,8 @@ function render() {
   const gen = data.map(i => +i['发电侧总成交量（MWh）'] || 0);
   const use = data.map(i => +i['用户侧总成交量（MWh)'] || 0);
   
-  // 修复：半角括号 + 用 undefined 不断线
-  const price = data.map(i => i['用户侧平均价(元/MWh)'] ?? undefined);
+  // 统一读取正确字段
+  const price = data.map(i => i['用户侧总平均价（元/MWh）'] ?? undefined);
 
   charts.gen.data.labels = dates;
   charts.gen.data.datasets[0].data = gen;
@@ -193,14 +193,16 @@ function render() {
   charts.price.data.datasets[0].data = price;
   charts.price.update();
 
-  document.getElementById('tableBody').innerHTML = data.map(row => `
+  document.getElementById('tableBody').innerHTML = data.map(row => {
+    const priceVal = row['用户侧总平均价（元/MWh）'];
+    return `
     <tr>
       <td>${row.日期}</td>
       <td>${parseFloat(row['发电侧总成交量（MWh）'] || 0).toLocaleString()}</td>
       <td>${parseFloat(row['用户侧总成交量（MWh)'] || 0).toLocaleString()}</td>
-      <td>${row['用户侧平均价(元/MWh)'] || '待更新'}</td>
+      <td>${priceVal ?? '待更新'}</td>
     </tr>
-  `).join('');
+  `}).join('');
 
   updateAnalysis();
 }
