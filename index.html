@@ -134,17 +134,26 @@
       responsive: true,
       maintainAspectRatio: false,
       plugins: { legend: false },
-      scales: { x: { grid: { display: false } } }
+      scales: {
+        x: { grid: { display: false } },
+        y: { beginAtZero: false }
+      }
     };
 
     chart1 = new Chart(document.getElementById('chart1'), {
-      type: 'line', data: { labels: [], datasets: [{ data: [], borderColor: '#2563eb', tension: 0.3 }] }, options: opt
+      type: 'line',
+      data: { labels: [], datasets: [{ data: [], borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.1)', fill: true, tension: 0.3 }] },
+      options: opt
     });
     chart2 = new Chart(document.getElementById('chart2'), {
-      type: 'line', data: { labels: [], datasets: [{ data: [], borderColor: '#0891b2', tension: 0.3 }] }, options: opt
+      type: 'line',
+      data: { labels: [], datasets: [{ data: [], borderColor: '#0891b2', backgroundColor: 'rgba(8,145,178,0.1)', fill: true, tension: 0.3 }] },
+      options: opt
     });
     chart3 = new Chart(document.getElementById('chart3'), {
-      type: 'line', data: { labels: [], datasets: [{ data: [], borderColor: '#ea580c', tension: 0.3 }] }, options: opt
+      type: 'line',
+      data: { labels: [], datasets: [{ data: [], borderColor: '#ea580c', backgroundColor: 'rgba(234,88,12,0.1)', fill: true, tension: 0.3 }] },
+      options: opt
     });
   }
 
@@ -155,59 +164,4 @@
       allData = await res.json();
       refresh();
       document.getElementById('status').innerText = '✅ 数据加载完成 | ' + new Date().toLocaleString();
-    } catch (e) {
-      document.getElementById('status').innerText = '❌ 加载失败';
-    }
-  }
-
-  // 关键！按日期筛选（这次用字符串分割，绝对不会出错）
-  function filterData() {
-    const val = document.getElementById('periodSelect').value;
-    if (val === 'all') return allData;
-
-    return allData.filter(row => {
-      // 把 "1.1" 转成 day = 1，"1.15" 转成 day = 15
-      const parts = row.日期.split('.');
-      const day = parseInt(parts[1], 10);
-      if (val === '1-15') return day >= 1 && day <= 15;
-      if (val === '16-31') return day >= 16 && day <= 31;
-      return true;
-    });
-  }
-
-  // 统一刷新图表和表格
-  function refresh() {
-    const data = filterData();
-    const dates = data.map(i => i.日期);
-    const gen = data.map(i => +i['发电侧总成交量（MWh）'] || 0);
-    const use = data.map(i => +i['用户侧总成交量（MWh)'] || 0);
-    const price = data.map(i => +i['用户侧总平均价（元/MWh）'] || 0);
-
-    // 更新图表
-    chart1.data.labels = dates; chart1.data.datasets[0].data = gen; chart1.update();
-    chart2.data.labels = dates; chart2.data.datasets[0].data = use; chart2.update();
-    chart3.data.labels = dates; chart3.data.datasets[0].data = price; chart3.update();
-
-    // 更新表格
-    const tbody = document.querySelector('#dataTable tbody');
-    tbody.innerHTML = '';
-    data.forEach(row => {
-      tbody.innerHTML += `
-      <tr>
-        <td>${row.日期}</td>
-        <td>${parseFloat(row['发电侧总成交量（MWh）'] || 0).toLocaleString()}</td>
-        <td>${parseFloat(row['用户侧总成交量（MWh)'] || 0).toLocaleString()}</td>
-        <td>${row['用户侧总平均价（元/MWh）']}</td>
-      </tr>`;
-    });
-  }
-
-  // 下拉框切换触发刷新
-  document.getElementById('periodSelect').addEventListener('change', refresh);
-
-  // 启动
-  initCharts();
-  loadData();
-</script>
-</body>
-</html>
+    } catch
