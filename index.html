@@ -55,8 +55,6 @@
       <option value="16-28">2月 16日-28日</option>
       <option value="3-15">3月 1日-15日</option>
       <option value="16-31-3">3月 16日-31日</option>
-      <option value="4-15">4月 1日-15日</option>
-      <option value="16-30-4">4月 16日-22日</option>
     </select>
   </div>
 
@@ -92,9 +90,8 @@
       <tbody id="tableBody"></tbody>
     </table>
   </div>
-<!-- ========================================== -->
-<!-- 👇 在这里粘贴我给你的 供需差异分析表格 👇 -->
-<!-- ========================================== -->
+
+<!-- 新增：供需差异分析表格 -->
 <div class="card">
   <h2>📊 供需差异分析（发电 - 用电）</h2>
   <div style="font-size:13px; margin-bottom:8px;">
@@ -120,6 +117,7 @@
   <p>• 差值为正：发电 > 用电 → 电力宽松</p>
   <p>• 差值越大，供需越失衡，电价波动越明显</p>
 </div>
+
 <script>
 let allData = [];
 let charts = {};
@@ -159,6 +157,7 @@ async function loadData() {
     document.getElementById('status').innerText = "✅ 数据加载完成";
   } catch (e) {
     document.getElementById('status').innerText = "❌ 加载失败";
+    console.error(e);
   }
 }
 
@@ -175,8 +174,6 @@ function filterData() {
     if (v === '16-28') return m === 2 && d >= 16 && d <= 28;
     if (v === '3-15')   return m === 3 && d >= 1 && d <= 15;
     if (v === '16-31-3') return m === 3 && d >= 16 && d <= 31;
-    if (v === '4-15')   return m === 4 && d >= 1 && d <= 15;
-    if (v === '16-30-4') return m === 4 && d >= 16 && d <= 30;
     
     return true;
   });
@@ -189,9 +186,7 @@ const analysisText = {
   "16-28": `<h3>📊 2月16日–28日 分析</h3><p>• 节后复工推进，工业用电逐步回升，负荷持续爬坡。</p><p>• 电价随需求恢复稳步上涨，市场回归正常水平。</p>`,
   "3-15": `<h3>📊 3月1日–15日 分析</h3><p>• 全面复工复产，用电稳步回升，负荷恢复至节前水平。</p><p>• 电价震荡上行，供需关系逐步回归常态偏紧。</p>`,
   "16-31-3": `<h3>📊 3月16日–31日 分析</h3><p>• 工业生产满负荷运行，用电量持续攀升创阶段新高。</p><p>• 供需格局持续收紧，电价大幅上涨，市场热度提升。</p>`,
-  "4-15": `<h3>📊 4月1日–15日 分析</h3><p>• 用电负荷维持高位，工业生产持续旺盛。</p><p>• 电价持续高位运行，供需维持紧平衡。</p>`,
-  "16-30-4": `<h3>📊 4月16日–22日 分析</h3><p>• 用电量保持高位，生产需求稳定。</p><p>• 电价数据待更新，当前仅展示电量走势。</p>`,
-  "all": `<h3>📊 全周期分析</h3><p>• 1-2月春节波动，3-4月持续走强，用电趋势清晰。</p><p>• 电价与负荷高度同步，季节性特征显著。</p>`
+  "all": `<h3>📊 全周期分析</h3><p>• 1-2月春节波动，3月持续走强，用电趋势清晰。</p><p>• 电价与负荷高度同步，季节性特征显著。</p>`
 };
 
 function updateAnalysis() {
@@ -199,17 +194,33 @@ function updateAnalysis() {
   document.getElementById('analysis').innerHTML = analysisText[v] || analysisText.all;
 }
 
+// 核心渲染函数（已修复电价）
 function render() {
   const data = filterData();
   const dates = data.map(i => i.日期);
   const gen = data.map(i => +i['发电侧总成交量（MWh）'] || 0);
   const use = data.map(i => +i['用户侧总成交量（MWh)'] || 0);
-  const price = data.map(i => i['用户侧平均价（元/MWh）'] || null);
+  
+  // 电价修复：空值正常显示，不破坏图表
+  const price = data.map(i => {
+    const v = i['用户侧平均价（元/MWh）'];
+    return (v == null || v === '') ? null : parseFloat(v);
+  });
 
-  charts.gen.data.labels = dates; charts.gen.data.datasets[0].data = gen; charts.gen.update();
-  charts.user.data.labels = dates; charts.user.data.datasets[0].data = use; charts.user.update();
-  charts.price.data.labels = dates; charts.price.data.datasets[0].data = price; charts.price.update();
+  // 更新图表
+  charts.gen.data.labels = dates;
+  charts.gen.data.datasets[0].data = gen;
+  charts.gen.update();
 
+  charts.user.data.labels = dates;
+  charts.user.data.datasets[0].data = use;
+  charts.user.update();
+
+  charts.price.data.labels = dates;
+  charts.price.data.datasets[0].data = price;
+  charts.price.update();
+
+  // 更新原表格
   document.getElementById('tableBody').innerHTML = data.map(row => `
     <tr>
       <td>${row.日期}</td>
@@ -219,14 +230,14 @@ function render() {
     </tr>
   `).join('');
 
-  updateAnalysis();
+  // 更新差异表格
   renderDiffTable(data);
+  
+  // 更新分析
+  updateAnalysis();
 }
 
-document.getElementById('period').addEventListener('change', render);
-initCharts();
-loadData();
-  // 供需差异表格
+// 供需差异表格
 function renderDiffTable(data) {
   document.getElementById('diffTableBody').innerHTML = data.map(row => {
     const gen = +row['发电侧总成交量（MWh）'] || 0;
@@ -243,6 +254,10 @@ function renderDiffTable(data) {
     </tr>`;
   }).join('');
 }
+
+document.getElementById('period').addEventListener('change', render);
+initCharts();
+loadData();
 </script>
 </body>
 </html>
