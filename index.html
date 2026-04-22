@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>电力现货数据可视化平台</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    body {
+      background-color: #f5f7fa;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      color: #1e293b;
+      margin-bottom: 10px;
+    }
+    .status-bar {
+      text-align: center;
+      color: #64748b;
+      font-size: 14px;
+      margin-bottom: 30px;
+    }
+    .chart-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    .chart-card h2 {
+      font-size: 16px;
+      color: #334155;
+      margin-bottom: 15px;
+    }
+    canvas {
+      width: 100% !important;
+      height: 280px !important;
+    }
+  </style>
+</head>
+<body>
+  <h1>⚡ 电力现货数据可视化平台</h1>
+  <div class="status-bar" id="status">正在加载数据...</div>
+
+  <div class="chart-card">
+    <h2>📈 发电侧成交量趋势（MWh）</h2>
+    <canvas id="chart1"></canvas>
+  </div>
+
+  <div class="chart-card">
+    <h2>📊 用户侧成交量趋势（MWh）</h2>
+    <canvas id="chart2"></canvas>
+  </div>
+
+  <div class="chart-card">
+    <h2>💰 用户侧平均电价趋势（元/MWh）</h2>
+    <canvas id="chart3"></canvas>
+  </div>
+
+  <script>
+    let chart1, chart2, chart3;
+
+    function initCharts() {
+      const commonOpts = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { x: { grid: { display: false } } }
+      };
+
+      chart1 = new Chart(document.getElementById('chart1'), {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: '发电侧成交量', data: [], borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', fill: true, tension: 0.3 }] },
+        options: commonOpts
+      });
+
+      chart2 = new Chart(document.getElementById('chart2'), {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: '用户侧成交量', data: [], borderColor: '#0891b2', backgroundColor: 'rgba(8, 145, 178, 0.1)', fill: true, tension: 0.3 }] },
+        options: commonOpts
+      });
+
+      chart3 = new Chart(document.getElementById('chart3'), {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: '用户侧均价', data: [], borderColor: '#ea580c', backgroundColor: 'rgba(234, 88, 12, 0.1)', fill: true, tension: 0.3 }] },
+        options: commonOpts
+      });
+    }
+
+    async function loadAndUpdateData() {
+      try {
+        const response = await fetch('data.json');
+        if (!response.ok) throw new Error('数据文件加载失败');
+        
+        const data = await response.json();
+        if (!data || data.length === 0) throw new Error('数据为空');
+
+        const dates = data.map(row => row['日期'] || '');
+        const genVol = data.map(row => parseFloat(row['发电侧总成交量（MWh）']) || 0);
+        const userVol = data.map(row => parseFloat(row['用户侧总成交量（MWh)']) || 0);
+        const avgPrice = data.map(row => parseFloat(row['用户侧总平均价（元/MWh）']) || 0);
+
+        chart1.data.labels = dates; chart1.data.datasets[0].data = genVol; chart1.update();
+        chart2.data.labels = dates; chart2.data.datasets[0].data = userVol; chart2.update();
+        chart3.data.labels = dates; chart3.data.datasets[0].data = avgPrice; chart3.update();
+
+        document.getElementById('status').innerText = `✅ 数据加载成功 | 最后刷新：${new Date().toLocaleString()}`;
+      } catch (err) {
+        document.getElementById('status').innerText = `❌ 加载失败：${err.message}`;
+      }
+    }
+
+    initCharts();
+    loadAndUpdateData();
+    setInterval(loadAndUpdateData, 30000);
+  </script>
+</body>
+</html>
