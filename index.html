@@ -27,8 +27,28 @@
       text-align: center;
       color: #64748b;
       font-size: 14px;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
     }
+
+    /* 时间段按钮 */
+    .period-selector {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    .period-btn {
+      padding: 8px 14px;
+      margin: 0 6px 10px 6px;
+      border: none;
+      border-radius: 8px;
+      background: #e2e8f0;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .period-btn.active {
+      background: #2563eb;
+      color: white;
+    }
+
     .chart-card {
       background: white;
       border-radius: 12px;
@@ -46,12 +66,11 @@
       height: 280px !important;
     }
 
-    /* 表格样式 */
     .table-card {
       background: white;
       border-radius: 12px;
       padding: 20px;
-      margin-top: 30px;
+      margin-top: 20px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.08);
     }
     .table-card h2 {
@@ -76,116 +95,129 @@
 </head>
 <body>
 
-  <h1>⚡ 电力现货数据可视化平台</h1>
-  <div class="status-bar" id="status">正在加载数据...</div>
+<h1>⚡ 电力现货数据可视化平台</h1>
+<div class="status-bar" id="status">加载中...</div>
 
-  <!-- 三个图表 -->
-  <div class="chart-card">
-    <h2>📈 发电侧成交量趋势（MWh）</h2>
-    <canvas id="chart1"></canvas>
-  </div>
-  <div class="chart-card">
-    <h2>📊 用户侧成交量趋势（MWh）</h2>
-    <canvas id="chart2"></canvas>
-  </div>
-  <div class="chart-card">
-    <h2>💰 用户侧平均电价趋势（元/MWh）</h2>
-    <canvas id="chart3"></canvas>
-  </div>
+<!-- 时间段选择 -->
+<div class="period-selector">
+  <button class="period-btn active" data-range="all">全部数据</button>
+  <button class="period-btn" data-range="1-15">1.1-1.15</button>
+  <button class="period-btn" data-range="16-31">1.16-1.31</button>
+</div>
 
-  <!-- 数据表格 -->
-  <div class="table-card">
-    <h2>📋 每日详细数据表格</h2>
-    <table id="dataTable">
-      <thead>
+<!-- 图表 -->
+<div class="chart-card">
+  <h2>📈 发电侧成交量</h2>
+  <canvas id="chart1"></canvas>
+</div>
+<div class="chart-card">
+  <h2>📊 用户侧成交量</h2>
+  <canvas id="chart2"></canvas>
+</div>
+<div class="chart-card">
+  <h2>💰 平均电价</h2>
+  <canvas id="chart3"></canvas>
+</div>
+
+<!-- 表格 -->
+<div class="table-card">
+  <h2>📋 详细数据</h2>
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th>日期</th>
+        <th>发电侧</th>
+        <th>用户侧</th>
+        <th>均价</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+  let chart1, chart2, chart3;
+  let allData = [];
+  let currentRange = 'all';
+
+  // 初始化图表
+  function initCharts() {
+    const opt = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: false,
+        tooltip: {
+          mode: 'index',
+          callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw.toLocaleString() }
+        }
+      },
+      scales: { x: { grid: { display: false } } }
+    };
+
+    chart1 = new Chart(chart1, { type: 'line', data: { labels: [], datasets: [{ label: '发电侧', data: [], borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.1)', fill: true, tension: 0.3 }] }, options: opt });
+    chart2 = new Chart(chart2, { type: 'line', data: { labels: [], datasets: [{ label: '用户侧', data: [], borderColor: '#0891b2', backgroundColor: 'rgba(8,145,178,0.1)', fill: true, tension: 0.3 }] }, options: opt });
+    chart3 = new Chart(chart3, { type: 'line', data: { labels: [], datasets: [{ label: '电价', data: [], borderColor: '#ea580c', backgroundColor: 'rgba(234,88,12,0.1)', fill: true, tension: 0.3 }] }, options: opt });
+  }
+
+  // 读取数据
+  async function loadData() {
+    let res = await fetch('data.json');
+    allData = await res.json();
+    updateView();
+    document.getElementById('status').innerText = '✅ 加载完成 | ' + new Date().toLocaleString();
+  }
+
+  // 筛选时间段
+  function getFilteredData() {
+    if (currentRange === 'all') return allData;
+    return allData.filter(row => {
+      let day = parseFloat(row.日期);
+      if (currentRange === '1-15') return day >= 1 && day <= 15;
+      if (currentRange === '16-31') return day >= 16 && day <= 31;
+      return true;
+    });
+  }
+
+  // 更新图表+表格
+  function updateView() {
+    let d = getFilteredData();
+    let dates = d.map(i => i.日期);
+    let gen = d.map(i => +i['发电侧总成交量（MWh）'] || 0);
+    let use = d.map(i => +i['用户侧总成交量（MWh)'] || 0);
+    let price = d.map(i => +i['用户侧总平均价（元/MWh）'] || 0);
+
+    chart1.data.labels = dates; chart1.data.datasets[0].data = gen; chart1.update();
+    chart2.data.labels = dates; chart2.data.datasets[0].data = use; chart2.update();
+    chart3.data.labels = dates; chart3.data.datasets[0].data = price; chart3.update();
+
+    let tbody = document.querySelector('#dataTable tbody');
+    tbody.innerHTML = '';
+    d.forEach(row => {
+      tbody.innerHTML += `
         <tr>
-          <th>日期</th>
-          <th>发电侧成交量</th>
-          <th>用户侧成交量</th>
-          <th>用户侧均价</th>
+          <td>${row.日期}</td>
+          <td>${parseFloat(row['发电侧总成交量（MWh）'] || 0).toLocaleString()}</td>
+          <td>${parseFloat(row['用户侧总成交量（MWh)'] || 0).toLocaleString()}</td>
+          <td>${row['用户侧总平均价（元/MWh）']}</td>
         </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+      `;
+    });
+  }
 
-  <script>
-    let chart1, chart2, chart3;
+  // 按钮切换时间段
+  document.querySelectorAll('.period-btn').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentRange = btn.dataset.range;
+      updateView();
+    };
+  });
 
-    // 初始化图表
-    function initCharts() {
-      const commonOpts = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            mode: 'index',
-            callbacks: {
-              label: (ctx) => ctx.dataset.label + "：" + ctx.raw.toLocaleString()
-            }
-          }
-        },
-        scales: { x: { grid: { display: false } } }
-      };
-
-      chart1 = new Chart(document.getElementById('chart1'), {
-        type: 'line',
-        data: { labels: [], datasets: [{ label: '发电侧', data: [], borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.1)', fill: true, tension: 0.3 }] },
-        options: commonOpts
-      });
-      chart2 = new Chart(document.getElementById('chart2'), {
-        type: 'line',
-        data: { labels: [], datasets: [{ label: '用户侧', data: [], borderColor: '#0891b2', backgroundColor: 'rgba(8,145,178,0.1)', fill: true, tension: 0.3 }] },
-        options: commonOpts
-      });
-      chart3 = new Chart(document.getElementById('chart3'), {
-        type: 'line',
-        data: { labels: [], datasets: [{ label: '电价', data: [], borderColor: '#ea580c', backgroundColor: 'rgba(234,88,12,0.1)', fill: true, tension: 0.3 }] },
-        options: commonOpts
-      });
-    }
-
-    // 加载数据 + 更新图表 + 更新表格
-    async function loadAll() {
-      try {
-        const res = await fetch('data.json');
-        const data = await res.json();
-
-        const dates = data.map(i => i.日期);
-        const gen = data.map(i => parseFloat(i['发电侧总成交量（MWh）'] || 0));
-        const use = data.map(i => parseFloat(i['用户侧总成交量（MWh)'] || 0));
-        const price = data.map(i => parseFloat(i['用户侧总平均价（元/MWh）'] || 0));
-
-        // 更新图表
-        chart1.data.labels = dates; chart1.data.datasets[0].data = gen; chart1.update();
-        chart2.data.labels = dates; chart2.data.datasets[0].data = use; chart2.update();
-        chart3.data.labels = dates; chart3.data.datasets[0].data = price; chart3.update();
-
-        // 更新表格
-        const tbody = document.querySelector('#dataTable tbody');
-        tbody.innerHTML = '';
-        data.forEach(row => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${row.日期}</td>
-            <td>${parseFloat(row['发电侧总成交量（MWh）'] || 0).toLocaleString()}</td>
-            <td>${parseFloat(row['用户侧总成交量（MWh)'] || 0).toLocaleString()}</td>
-            <td>${parseFloat(row['用户侧总平均价（元/MWh）'] || 0)}</td>
-          `;
-          tbody.appendChild(tr);
-        });
-
-        document.getElementById('status').innerText = `✅ 数据加载成功 | ${new Date().toLocaleString()}`;
-      } catch (e) {
-        document.getElementById('status').innerText = "❌ 加载失败：" + e.message;
-        console.error(e);
-      }
-    }
-
-    initCharts();
-    loadAll();
-    setInterval(loadAll, 30000);
-  </script>
+  initCharts();
+  loadData();
+  setInterval(loadData, 60000);
+</script>
 </body>
 </html>
