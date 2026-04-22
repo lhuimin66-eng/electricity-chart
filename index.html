@@ -30,7 +30,6 @@
       margin-bottom: 20px;
     }
 
-    /* 下拉框样式 */
     .select-wrapper {
       text-align: center;
       margin-bottom: 25px;
@@ -40,7 +39,7 @@
       border-radius: 8px;
       border: 1px solid #cbd5e1;
       font-size: 14px;
-      min-width: 200px;
+      min-width: 220px;
     }
 
     .chart-card {
@@ -98,8 +97,6 @@
     <option value="all">📅 全部数据</option>
     <option value="1-15">1月 1日-15日</option>
     <option value="16-31">1月 16日-31日</option>
-    <option value="2-15">2月 1日-15日</option>
-    <option value="16-28">2月 16日-28日</option>
   </select>
 </div>
 
@@ -119,7 +116,7 @@
 
 <!-- 表格 -->
 <div class="table-card">
-  <h2>📋 详细数据</h2>
+  <h2>📋 详细数据（随时间段同步）</h2>
   <table id="dataTable">
     <thead>
       <tr>
@@ -168,59 +165,59 @@
     try {
       let res = await fetch('data.json');
       allData = await res.json();
-      updateView();
+      refreshAll();
       document.getElementById('status').innerText = '✅ 加载完成 | ' + new Date().toLocaleString();
     } catch (e) {
       document.getElementById('status').innerText = '❌ 加载失败';
     }
   }
 
-  // 根据日期筛选
-  function getFilteredData() {
+  // 获取当前筛选后的数据
+  function getCurrentData() {
     let val = document.getElementById('periodSelect').value;
     if (val === 'all') return allData;
 
     return allData.filter(row => {
-      let t = parseFloat(row.日期);
-      switch(val) {
-        case '1-15': return t >= 1 && t <= 15;
-        case '16-31': return t >= 16 && t <= 31;
-        case '2-15': return t >= 32 && t <= 45;
-        case '16-28': return t >= 46 && t <= 59;
-        default: return true;
-      }
+      let day = Number(row.日期);
+      if (val === '1-15') return day >= 1 && day <= 15;
+      if (val === '16-31') return day >= 16 && day <= 31;
+      return true;
     });
   }
 
-  // 更新图表和表格
-  function updateView() {
-    let d = getFilteredData();
-    let dates = d.map(i => i.日期);
-    let gen = d.map(i => +i['发电侧总成交量（MWh）'] || 0);
-    let use = d.map(i => +i['用户侧总成交量（MWh)'] || 0);
-    let price = d.map(i => +i['用户侧总平均价（元/MWh）'] || 0);
+  // 刷新 图表 + 表格（完全同步）
+  function refreshAll() {
+    let data = getCurrentData();
+    
+    // 提取数据
+    const dates = data.map(i => i.日期);
+    const gen = data.map(i => +i['发电侧总成交量（MWh）'] || 0);
+    const use = data.map(i => +i['用户侧总成交量（MWh)'] || 0);
+    const price = data.map(i => +i['用户侧总平均价（元/MWh）'] || 0);
 
+    // 更新图表
     chart1.data.labels = dates; chart1.data.datasets[0].data = gen; chart1.update();
     chart2.data.labels = dates; chart2.data.datasets[0].data = use; chart2.update();
     chart3.data.labels = dates; chart3.data.datasets[0].data = price; chart3.update();
 
+    // 更新表格（和图表完全同步！）
     let tbody = document.querySelector('#dataTable tbody');
     tbody.innerHTML = '';
-    d.forEach(row => {
+    data.forEach(row => {
       tbody.innerHTML += `
-        <tr>
-          <td>${row.日期}</td>
-          <td>${parseFloat(row['发电侧总成交量（MWh）'] || 0).toLocaleString()}</td>
-          <td>${parseFloat(row['用户侧总成交量（MWh)'] || 0).toLocaleString()}</td>
-          <td>${row['用户侧总平均价（元/MWh）']}</td>
-        </tr>
-      `;
+      <tr>
+        <td>${row.日期}</td>
+        <td>${parseFloat(row['发电侧总成交量（MWh）'] || 0).toLocaleString()}</td>
+        <td>${parseFloat(row['用户侧总成交量（MWh)'] || 0).toLocaleString()}</td>
+        <td>${row['用户侧总平均价（元/MWh）']}</td>
+      </tr>`;
     });
   }
 
-  // 下拉框切换
-  document.getElementById('periodSelect').addEventListener('change', updateView);
+  // 下拉框切换 → 全部同步刷新
+  document.getElementById('periodSelect').addEventListener('change', refreshAll);
 
+  // 启动
   initCharts();
   loadData();
   setInterval(loadData, 60000);
