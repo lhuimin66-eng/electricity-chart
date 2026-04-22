@@ -30,23 +30,17 @@
       margin-bottom: 20px;
     }
 
-    /* 时间段按钮 */
-    .period-selector {
+    /* 下拉框样式 */
+    .select-wrapper {
       text-align: center;
       margin-bottom: 25px;
     }
-    .period-btn {
-      padding: 8px 14px;
-      margin: 0 6px 10px 6px;
-      border: none;
+    #periodSelect {
+      padding: 10px 15px;
       border-radius: 8px;
-      background: #e2e8f0;
-      cursor: pointer;
+      border: 1px solid #cbd5e1;
       font-size: 14px;
-    }
-    .period-btn.active {
-      background: #2563eb;
-      color: white;
+      min-width: 200px;
     }
 
     .chart-card {
@@ -98,11 +92,15 @@
 <h1>⚡ 电力现货数据可视化平台</h1>
 <div class="status-bar" id="status">加载中...</div>
 
-<!-- 时间段选择 -->
-<div class="period-selector">
-  <button class="period-btn active" data-range="all">全部数据</button>
-  <button class="period-btn" data-range="1-15">1.1-1.15</button>
-  <button class="period-btn" data-range="16-31">1.16-1.31</button>
+<!-- 下拉选择框 -->
+<div class="select-wrapper">
+  <select id="periodSelect">
+    <option value="all">📅 全部数据</option>
+    <option value="1-15">1月 1日-15日</option>
+    <option value="16-31">1月 16日-31日</option>
+    <option value="2-15">2月 1日-15日</option>
+    <option value="16-28">2月 16日-28日</option>
+  </select>
 </div>
 
 <!-- 图表 -->
@@ -138,7 +136,6 @@
 <script>
   let chart1, chart2, chart3;
   let allData = [];
-  let currentRange = 'all';
 
   // 初始化图表
   function initCharts() {
@@ -155,31 +152,47 @@
       scales: { x: { grid: { display: false } } }
     };
 
-    chart1 = new Chart(chart1, { type: 'line', data: { labels: [], datasets: [{ label: '发电侧', data: [], borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.1)', fill: true, tension: 0.3 }] }, options: opt });
-    chart2 = new Chart(chart2, { type: 'line', data: { labels: [], datasets: [{ label: '用户侧', data: [], borderColor: '#0891b2', backgroundColor: 'rgba(8,145,178,0.1)', fill: true, tension: 0.3 }] }, options: opt });
-    chart3 = new Chart(chart3, { type: 'line', data: { labels: [], datasets: [{ label: '电价', data: [], borderColor: '#ea580c', backgroundColor: 'rgba(234,88,12,0.1)', fill: true, tension: 0.3 }] }, options: opt });
-  }
-
-  // 读取数据
-  async function loadData() {
-    let res = await fetch('data.json');
-    allData = await res.json();
-    updateView();
-    document.getElementById('status').innerText = '✅ 加载完成 | ' + new Date().toLocaleString();
-  }
-
-  // 筛选时间段
-  function getFilteredData() {
-    if (currentRange === 'all') return allData;
-    return allData.filter(row => {
-      let day = parseFloat(row.日期);
-      if (currentRange === '1-15') return day >= 1 && day <= 15;
-      if (currentRange === '16-31') return day >= 16 && day <= 31;
-      return true;
+    chart1 = new Chart(document.getElementById('chart1'), {
+      type: 'line', data: { labels: [], datasets: [{ label: '发电侧', data: [], borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.1)', fill: true, tension: 0.3 }] }, options: opt
+    });
+    chart2 = new Chart(document.getElementById('chart2'), {
+      type: 'line', data: { labels: [], datasets: [{ label: '用户侧', data: [], borderColor: '#0891b2', backgroundColor: 'rgba(8,145,178,0.1)', fill: true, tension: 0.3 }] }, options: opt
+    });
+    chart3 = new Chart(document.getElementById('chart3'), {
+      type: 'line', data: { labels: [], datasets: [{ label: '电价', data: [], borderColor: '#ea580c', backgroundColor: 'rgba(234,88,12,0.1)', fill: true, tension: 0.3 }] }, options: opt
     });
   }
 
-  // 更新图表+表格
+  // 加载数据
+  async function loadData() {
+    try {
+      let res = await fetch('data.json');
+      allData = await res.json();
+      updateView();
+      document.getElementById('status').innerText = '✅ 加载完成 | ' + new Date().toLocaleString();
+    } catch (e) {
+      document.getElementById('status').innerText = '❌ 加载失败';
+    }
+  }
+
+  // 根据日期筛选
+  function getFilteredData() {
+    let val = document.getElementById('periodSelect').value;
+    if (val === 'all') return allData;
+
+    return allData.filter(row => {
+      let t = parseFloat(row.日期);
+      switch(val) {
+        case '1-15': return t >= 1 && t <= 15;
+        case '16-31': return t >= 16 && t <= 31;
+        case '2-15': return t >= 32 && t <= 45;
+        case '16-28': return t >= 46 && t <= 59;
+        default: return true;
+      }
+    });
+  }
+
+  // 更新图表和表格
   function updateView() {
     let d = getFilteredData();
     let dates = d.map(i => i.日期);
@@ -205,15 +218,8 @@
     });
   }
 
-  // 按钮切换时间段
-  document.querySelectorAll('.period-btn').forEach(btn => {
-    btn.onclick = () => {
-      document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentRange = btn.dataset.range;
-      updateView();
-    };
-  });
+  // 下拉框切换
+  document.getElementById('periodSelect').addEventListener('change', updateView);
 
   initCharts();
   loadData();
