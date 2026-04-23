@@ -7,11 +7,16 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; font-family:system-ui, sans-serif; }
-    body { background:#f5f7fa; padding:20px; max-width:1200px; margin:0 auto; }
-    h1 { text-align:center; margin-bottom:8px; font-size:22px; }
-    .status { text-align:center; color:#666; font-size:14px; margin-bottom:16px; }
+    body { background:#0f172a; padding:20px; max-width:1200px; margin:0 auto; color:#e2e8f0; }
+    h1 { text-align:center; margin-bottom:8px; font-size:24px; color:#f8fafc; font-weight:600; }
+    .status { text-align:center; color:#94a3b8; font-size:14px; margin-bottom:16px; }
+    
     .select-box { text-align:center; margin-bottom:24px; }
-    #period { padding:10px 14px; border-radius:8px; border:1px solid #ccc; min-width:240px; }
+    #period { 
+      padding:10px 14px; border-radius:8px; 
+      border:1px solid #1e293b; min-width:240px;
+      background:#1e293b; color:#e2e8f0;
+    }
 
     /* 顶部驾驶舱 */
     .dashboard {
@@ -21,30 +26,32 @@
       margin-bottom: 24px;
     }
     .dash-card {
-      background: white;
+      background:#1e293b;
       padding: 20px;
       border-radius: 12px;
       text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border:1px solid #334155;
     }
     .dash-label {
       font-size: 14px;
-      color: #666;
+      color: #94a3b8;
       margin-bottom: 8px;
     }
     .dash-value {
-      font-size: 22px;
+      font-size: 24px;
       font-weight: bold;
-      color: #2563eb;
+      background: linear-gradient(90deg, #00d8ff, #6366f1);
+      -webkit-background-clip: text;
+      color: transparent;
     }
     .dash-unit {
       font-size: 13px;
-      color: #888;
+      color: #64748b;
       margin-top: 4px;
     }
     .dash-date {
       font-size: 12px;
-      color: #999;
+      color: #64748b;
       margin-top: 6px;
     }
 
@@ -52,44 +59,51 @@
     .date-picker-box {
       text-align: center;
       margin-bottom: 20px;
+      color:#cbd5e1;
     }
     .date-picker-box input {
       padding: 6px 10px;
       border-radius: 6px;
-      border: 1px solid #ccc;
+      border: 1px solid #334155;
+      background:#1e293b;
+      color:#e2e8f0;
     }
 
-    .card { background:white; border-radius:12px; padding:20px; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
-    .card h2 { font-size:16px; margin-bottom:12px; color:#333; }
+    .card { 
+      background:#1e293b; 
+      border-radius:12px; 
+      padding:20px; 
+      margin-bottom:20px; 
+      border:1px solid #334155;
+    }
+    .card h2 { font-size:16px; margin-bottom:12px; color:#f1f5f9; }
+
     canvas { width:100% !important; height:280px !important; }
 
-    table { width:100%; border-collapse:collapse; }
-    th, td { padding:10px; text-align:center; border-bottom:1px solid #eee; }
-    th { background:#f8f9fa; }
+    table { width:100%; border-collapse:collapse; color:#e2e8f0; }
+    th, td { padding:10px; text-align:center; border-bottom:1px solid #334155; }
+    th { background:#1e293b; color:#cbd5e1; }
 
     .analysis-box {
-      background: #e6f7ff;
-      border-left:4px solid #2563eb;
+      background: #1e293b;
+      border-left:4px solid #00d8ff;
       padding:14px 16px;
       border-radius:8px;
       margin-bottom:20px;
       line-height:1.5;
       font-size:14px;
+      color:#cbd5e1;
     }
     .analysis-box h3 {
       font-size:15px;
       margin-bottom:6px;
-      color:#1e3a8a;
-    }
-    .analysis-box p {
-      margin:4px 0;
-      color:#1e293b;
+      color:#00d8ff;
     }
   </style>
 </head>
 
 <body>
-  <h1>  电力数据可视化系统</h1>
+  <h1>⚡ 电力数据可视化系统</h1>
   <div class="status" id="status">加载中...</div>
 
   <!-- 顶部驾驶舱 -->
@@ -114,7 +128,7 @@
     </div>
   </div>
 
-  <!-- 日期选择器：手动选某天查看 -->
+  <!-- 日期选择器：手动选某天数据 -->
   <div class="date-picker-box">
     <span style="margin-right:8px;">选择日期查看：</span>
     <input type="date" id="selectDate" onchange="selectByDate()">
@@ -177,7 +191,7 @@
 let allData = [];
 let charts = {};
 
-// 日期选择器：手动查看某天数据
+// 日期选择查看某天
 function selectByDate() {
   const dateStr = document.getElementById('selectDate').value;
   if (!dateStr || !allData.length) return;
@@ -201,14 +215,22 @@ function initCharts() {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: true,
+      legend: { labels: { color: '#cbd5e1' } },
       tooltip: {
         mode: 'index',
         intersect: false,
+        backgroundColor: '#0f172a',
+        titleColor: '#fff',
+        bodyColor: '#e2e8f0',
+        borderColor: '#334155',
+        borderWidth:1,
         callbacks: { label: ctx => ctx.dataset.label + '：' + ctx.raw.toLocaleString() }
       }
     },
-    scales: { x: { grid: { display: false } } },
+    scales: { 
+      x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
+      y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }
+    },
     hover: { mode: 'index', intersect: false }
   };
 
@@ -218,8 +240,8 @@ function initCharts() {
     data: {
       labels: [],
       datasets: [
-        { label: '发电侧 (MWh)', data: [], borderColor: '#2563eb', tension: 0.3 },
-        { label: '用户侧 (MWh)', data: [], borderColor: '#ea580c', tension: 0.3 }
+        { label: '发电侧 (MWh)', data: [], borderColor: '#00d8ff', tension: 0.4, pointBackgroundColor:'#00d8ff' },
+        { label: '用户侧 (MWh)', data: [], borderColor: '#f472b6', tension: 0.4, pointBackgroundColor:'#f472b6' }
       ]
     },
     options: config
@@ -229,7 +251,7 @@ function initCharts() {
     type: 'line', 
     data: { 
       labels: [], 
-      datasets: [{ label: '发电侧 (MWh)', data: [], borderColor: '#2563eb', tension: 0.3 }] 
+      datasets: [{ label: '发电侧 (MWh)', data: [], borderColor: '#00d8ff', tension: 0.4, pointBackgroundColor:'#00d8ff' }] 
     }, 
     options: config 
   });
@@ -238,7 +260,7 @@ function initCharts() {
     type: 'line', 
     data: { 
       labels: [], 
-      datasets: [{ label: '用户侧 (MWh)', data: [], borderColor: '#0891b2', tension: 0.3 }] 
+      datasets: [{ label: '用户侧 (MWh)', data: [], borderColor: '#34d399', tension: 0.4, pointBackgroundColor:'#34d399' }] 
     }, 
     options: config 
   });
@@ -247,7 +269,7 @@ function initCharts() {
     type: 'line', 
     data: { 
       labels: [], 
-      datasets: [{ label: '电价 (元/MWh)', data: [], borderColor: '#ea580c', tension: 0.3 }] 
+      datasets: [{ label: '电价 (元/MWh)', data: [], borderColor: '#fbbf24', tension: 0.4, pointBackgroundColor:'#fbbf24' }] 
     }, 
     options: config 
   });
@@ -260,14 +282,14 @@ async function loadData() {
     allData = await res.json();
     renderDashboard();
     render();
-    document.getElementById('status').innerText = " 数据加载完成";
+    document.getElementById('status').innerText = "✅ 数据加载完成";
   } catch (e) {
-    document.getElementById('status').innerText = " 加载失败";
+    document.getElementById('status').innerText = "❌ 加载失败";
     console.error(e);
   }
 }
 
-// 顶部驾驶舱（默认显示最新一天）
+// 顶部驾驶舱（默认最新一天）
 function renderDashboard() {
   if (!allData || allData.length === 0) return;
   const last = allData[allData.length - 1];
