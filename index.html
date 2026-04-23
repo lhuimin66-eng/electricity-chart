@@ -43,6 +43,17 @@
       margin-top: 6px;
     }
 
+    /* 日期选择器 */
+    .date-picker-box {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .date-picker-box input {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
     .card { background:white; border-radius:12px; padding:20px; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
     .card h2 { font-size:16px; margin-bottom:12px; color:#333; }
     canvas { width:100% !important; height:280px !important; }
@@ -93,6 +104,12 @@
       <div class="dash-value" id="lastPrice">-</div>
       <div class="dash-date">-</div>
     </div>
+  </div>
+
+  <!-- 日期选择器：手动选某天查看 -->
+  <div class="date-picker-box">
+    <span style="margin-right:8px;">选择日期查看：</span>
+    <input type="date" id="selectDate" onchange="selectByDate()">
   </div>
 
   <div class="select-box">
@@ -152,6 +169,25 @@
 let allData = [];
 let charts = {};
 
+// 日期选择器：手动查看某天数据
+function selectByDate() {
+  const dateStr = document.getElementById('selectDate').value;
+  if (!dateStr || !allData.length) return;
+
+  const parts = dateStr.split('-');
+  const m = parseInt(parts[1]);
+  const d = parseInt(parts[2]);
+  const target = `${m}.${d}`;
+
+  const item = allData.find(i => i.日期 === target);
+  if (!item) return;
+
+  document.getElementById('lastGen').innerText = parseFloat(item['发电侧总成交量（MWh）']).toLocaleString();
+  document.getElementById('lastUse').innerText = parseFloat(item['用户侧总成交量（MWh)']).toLocaleString();
+  document.getElementById('lastPrice').innerText = item['用户侧总平均价（元/MWh）'] ?? '待更新';
+  document.getElementById('lastDate').innerText = item.日期;
+}
+
 function initCharts() {
   const config = {
     responsive: true,
@@ -206,7 +242,7 @@ async function loadData() {
   }
 }
 
-// 顶部驾驶舱
+// 顶部驾驶舱（默认显示最新一天）
 function renderDashboard() {
   if (!allData || allData.length === 0) return;
   const last = allData[allData.length - 1];
