@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>电力现货数据可视化平台</title>
+  <title>电力数据可视化系统</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; font-family:system-ui, sans-serif; }
@@ -12,6 +12,36 @@
     .status { text-align:center; color:#666; font-size:14px; margin-bottom:16px; }
     .select-box { text-align:center; margin-bottom:24px; }
     #period { padding:10px 14px; border-radius:8px; border:1px solid #ccc; min-width:240px; }
+
+    /* 顶部驾驶舱 样式 */
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .dash-card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .dash-label {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+    .dash-value {
+      font-size: 22px;
+      font-weight: bold;
+      color: #2563eb;
+    }
+    .dash-date {
+      font-size: 12px;
+      color: #999;
+      margin-top: 6px;
+    }
 
     .card { background:white; border-radius:12px; padding:20px; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
     .card h2 { font-size:16px; margin-bottom:12px; color:#333; }
@@ -43,26 +73,49 @@
 </head>
 
 <body>
-  <h1>⚡ 电力现货数据可视化平台</h1>
+  <h1>⚡ 电力数据可视化系统</h1>
   <div class="status" id="status">加载中...</div>
+
+  <!-- ====================== 顶部驾驶舱 ====================== -->
+  <div class="dashboard">
+    <div class="dash-card">
+      <div class="dash-label">昨日发电侧电量</div>
+      <div class="dash-value" id="lastGen">-</div>
+      <div class="dash-date" id="lastDate">-</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-label">昨日用户侧电量</div>
+      <div class="dash-value" id="lastUse">-</div>
+      <div class="dash-date">-</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-label">昨日电价</div>
+      <div class="dash-value" id="lastPrice">-</div>
+      <div class="dash-date">-</div>
+    </div>
+  </div>
+  <!-- ======================================================== -->
 
   <div class="select-box">
     <select id="period">
-      <option value="all">全部数据</option>
+      <option value="all">📅 全部数据</option>
       <option value="1-15">1月 1日-15日</option>
       <option value="16-31">1月 16日-31日</option>
       <option value="2-15">2月 1日-15日</option>
       <option value="16-28">2月 16日-28日</option>
       <option value="3-15">3月 1日-15日</option>
       <option value="16-31-3">3月 16日-31日</option>
-      <option value="4-15">4月 1日-15日</option>
-      <option value="16-30-4">4月 16日-22日</option>
     </select>
   </div>
 
   <div class="analysis-box" id="analysis">
     <h3>📊 时段分析</h3>
     <p>请选择时间段查看分析</p>
+  </div>
+
+  <div class="card">
+    <h2>📊 发电侧 vs 用户侧 电量对比</h2>
+    <canvas id="chartCompare"></canvas>
   </div>
 
   <div class="card">
@@ -102,7 +155,7 @@ function initCharts() {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: false,
+      legend: true,
       tooltip: {
         mode: 'index',
         intersect: false,
@@ -112,6 +165,18 @@ function initCharts() {
     scales: { x: { grid: { display: false } } },
     hover: { mode: 'index', intersect: false }
   };
+
+  charts.compare = new Chart(document.getElementById('chartCompare'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        { label: '发电侧', data: [], borderColor: '#2563eb', tension: 0.3 },
+        { label: '用户侧', data: [], borderColor: '#ea580c', tension: 0.3 }
+      ]
+    },
+    options: config
+  });
 
   charts.gen = new Chart(document.getElementById('chartGen'), {
     type: 'line', data: { labels: [], datasets: [{ label: '发电侧', data: [], borderColor: '#2563eb', tension: 0.3 }] }, options: config
@@ -124,16 +189,31 @@ function initCharts() {
   });
 }
 
+// 加载数据
 async function loadData() {
   try {
     const res = await fetch('data.json?v='+Date.now());
     allData = await res.json();
+    renderDashboard(); // 加载顶部驾驶舱
     render();
     document.getElementById('status').innerText = "✅ 数据加载完成";
   } catch (e) {
     document.getElementById('status').innerText = "❌ 加载失败";
+    console.error(e);
   }
 }
+
+// ====================== 顶部驾驶舱：自动取最新一天 ======================
+function renderDashboard() {
+  if (!allData || allData.length === 0) return;
+  const last = allData[allData.length - 1]; // 最新一天
+
+  document.getElementById('lastGen').innerText = parseFloat(last['发电侧总成交量（MWh）']).toLocaleString();
+  document.getElementById('lastUse').innerText = parseFloat(last['用户侧总成交量（MWh)']).toLocaleString();
+  document.getElementById('lastPrice').innerText = last['用户侧平均价（元/MWh）'] || '待更新';
+  document.getElementById('lastDate').innerText = last.日期;
+}
+// ======================================================================
 
 function filterData() {
   const v = document.getElementById('period').value;
@@ -148,8 +228,6 @@ function filterData() {
     if (v === '16-28') return m === 2 && d >= 16 && d <= 28;
     if (v === '3-15')   return m === 3 && d >= 1 && d <= 15;
     if (v === '16-31-3') return m === 3 && d >= 16 && d <= 31;
-    if (v === '4-15')   return m === 4 && d >= 1 && d <= 15;
-    if (v === '16-30-4') return m === 4 && d >= 16 && d <= 30;
     
     return true;
   });
@@ -162,9 +240,7 @@ const analysisText = {
   "16-28": `<h3>📊 2月16日–28日 分析</h3><p>• 节后复工推进，工业用电逐步回升，负荷持续爬坡。</p><p>• 电价随需求恢复稳步上涨，市场回归正常水平。</p>`,
   "3-15": `<h3>📊 3月1日–15日 分析</h3><p>• 全面复工复产，用电稳步回升，负荷恢复至节前水平。</p><p>• 电价震荡上行，供需关系逐步回归常态偏紧。</p>`,
   "16-31-3": `<h3>📊 3月16日–31日 分析</h3><p>• 工业生产满负荷运行，用电量持续攀升创阶段新高。</p><p>• 供需格局持续收紧，电价大幅上涨，市场热度提升。</p>`,
-  "4-15": `<h3>📊 4月1日–15日 分析</h3><p>• 用电负荷维持高位，工业生产持续旺盛。</p><p>• 电价持续高位运行，供需维持紧平衡。</p>`,
-  "16-30-4": `<h3>📊 4月16日–22日 分析</h3><p>• 用电量保持高位，生产需求稳定。</p><p>• 电价数据待更新，当前仅展示电量走势。</p>`,
-  "all": `<h3>📊 全周期分析</h3><p>• 1-2月春节波动，3-4月持续走强，用电趋势清晰。</p><p>• 电价与负荷高度同步，季节性特征显著。</p>`
+  "all": `<h3>📊 全周期分析</h3><p>• 1-2月春节波动，3月持续走强，用电趋势清晰。</p><p>• 电价与负荷高度同步，季节性特征显著。</p>`
 };
 
 function updateAnalysis() {
@@ -178,8 +254,15 @@ function render() {
   const gen = data.map(i => +i['发电侧总成交量（MWh）'] || 0);
   const use = data.map(i => +i['用户侧总成交量（MWh)'] || 0);
   
-  // 统一读取正确字段
-  const price = data.map(i => i['用户侧总平均价（元/MWh）'] ?? undefined);
+  const price = data.map(i => {
+    const v = i['用户侧平均价（元/MWh）'];
+    return (v == null || v === '') ? null : parseFloat(v);
+  });
+
+  charts.compare.data.labels = dates;
+  charts.compare.data.datasets[0].data = gen;
+  charts.compare.data.datasets[1].data = use;
+  charts.compare.update();
 
   charts.gen.data.labels = dates;
   charts.gen.data.datasets[0].data = gen;
@@ -193,16 +276,14 @@ function render() {
   charts.price.data.datasets[0].data = price;
   charts.price.update();
 
-  document.getElementById('tableBody').innerHTML = data.map(row => {
-    const priceVal = row['用户侧总平均价（元/MWh）'];
-    return `
+  document.getElementById('tableBody').innerHTML = data.map(row => `
     <tr>
       <td>${row.日期}</td>
       <td>${parseFloat(row['发电侧总成交量（MWh）'] || 0).toLocaleString()}</td>
       <td>${parseFloat(row['用户侧总成交量（MWh)'] || 0).toLocaleString()}</td>
-      <td>${priceVal ?? '待更新'}</td>
+      <td>${row['用户侧平均价（元/MWh）'] || '待更新'}</td>
     </tr>
-  `}).join('');
+  `).join('');
 
   updateAnalysis();
 }
