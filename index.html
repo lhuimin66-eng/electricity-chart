@@ -89,7 +89,7 @@
 </head>
 
 <body>
-  <h1>⚡ 电力数据可视化系统</h1>
+  <h1> 电力数据可视化系统</h1>
   <div class="status" id="status">加载中...</div>
 
   <!-- 顶部驾驶舱 -->
@@ -260,9 +260,9 @@ async function loadData() {
     allData = await res.json();
     renderDashboard();
     render();
-    document.getElementById('status').innerText = "✅ 数据加载完成";
+    document.getElementById('status').innerText = " 数据加载完成";
   } catch (e) {
-    document.getElementById('status').innerText = "❌ 加载失败";
+    document.getElementById('status').innerText = " 加载失败";
     console.error(e);
   }
 }
