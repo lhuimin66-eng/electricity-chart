@@ -13,7 +13,7 @@
     .select-box { text-align:center; margin-bottom:24px; }
     #period { padding:10px 14px; border-radius:8px; border:1px solid #ccc; min-width:240px; }
 
-    /* 顶部驾驶舱 样式 */
+    /* 顶部驾驶舱 */
     .dashboard {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -76,7 +76,7 @@
   <h1>⚡ 电力数据可视化系统</h1>
   <div class="status" id="status">加载中...</div>
 
-  <!-- ====================== 顶部驾驶舱 ====================== -->
+  <!-- 顶部驾驶舱 -->
   <div class="dashboard">
     <div class="dash-card">
       <div class="dash-label">昨日发电侧电量</div>
@@ -94,7 +94,6 @@
       <div class="dash-date">-</div>
     </div>
   </div>
-  <!-- ======================================================== -->
 
   <div class="select-box">
     <select id="period">
@@ -113,6 +112,7 @@
     <p>请选择时间段查看分析</p>
   </div>
 
+  <!-- 发电 & 用户 同图对比 -->
   <div class="card">
     <h2>📊 发电侧 vs 用户侧 电量对比</h2>
     <canvas id="chartCompare"></canvas>
@@ -166,6 +166,7 @@ function initCharts() {
     hover: { mode: 'index', intersect: false }
   };
 
+  // 对比图
   charts.compare = new Chart(document.getElementById('chartCompare'), {
     type: 'line',
     data: {
@@ -194,7 +195,7 @@ async function loadData() {
   try {
     const res = await fetch('data.json?v='+Date.now());
     allData = await res.json();
-    renderDashboard(); // 加载顶部驾驶舱
+    renderDashboard();
     render();
     document.getElementById('status').innerText = "✅ 数据加载完成";
   } catch (e) {
@@ -203,17 +204,16 @@ async function loadData() {
   }
 }
 
-// ====================== 顶部驾驶舱：自动取最新一天 ======================
+// 顶部驾驶舱
 function renderDashboard() {
   if (!allData || allData.length === 0) return;
-  const last = allData[allData.length - 1]; // 最新一天
+  const last = allData[allData.length - 1];
 
   document.getElementById('lastGen').innerText = parseFloat(last['发电侧总成交量（MWh）']).toLocaleString();
   document.getElementById('lastUse').innerText = parseFloat(last['用户侧总成交量（MWh)']).toLocaleString();
-  document.getElementById('lastPrice').innerText = last['用户侧平均价（元/MWh）'] || '待更新';
+  document.getElementById('lastPrice').innerText = last['用户侧总平均价（元/MWh）'] ?? '待更新';
   document.getElementById('lastDate').innerText = last.日期;
 }
-// ======================================================================
 
 function filterData() {
   const v = document.getElementById('period').value;
@@ -254,11 +254,13 @@ function render() {
   const gen = data.map(i => +i['发电侧总成交量（MWh）'] || 0);
   const use = data.map(i => +i['用户侧总成交量（MWh)'] || 0);
   
+  // 电价：严格对应你的字段，null 不显示但不破坏曲线
   const price = data.map(i => {
-    const v = i['用户侧平均价（元/MWh）'];
-    return (v == null || v === '') ? null : parseFloat(v);
+    const v = i['用户侧总平均价（元/MWh）'];
+    return v == null ? null : parseFloat(v);
   });
 
+  // 更新对比图
   charts.compare.data.labels = dates;
   charts.compare.data.datasets[0].data = gen;
   charts.compare.data.datasets[1].data = use;
@@ -276,12 +278,13 @@ function render() {
   charts.price.data.datasets[0].data = price;
   charts.price.update();
 
+  // 表格
   document.getElementById('tableBody').innerHTML = data.map(row => `
     <tr>
       <td>${row.日期}</td>
-      <td>${parseFloat(row['发电侧总成交量（MWh）'] || 0).toLocaleString()}</td>
-      <td>${parseFloat(row['用户侧总成交量（MWh)'] || 0).toLocaleString()}</td>
-      <td>${row['用户侧平均价（元/MWh）'] || '待更新'}</td>
+      <td>${parseFloat(row['发电侧总成交量（MWh）']).toLocaleString()}</td>
+      <td>${parseFloat(row['用户侧总成交量（MWh)']).toLocaleString()}</td>
+      <td>${row['用户侧总平均价（元/MWh）'] ?? '待更新'}</td>
     </tr>
   `).join('');
 
