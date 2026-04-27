@@ -334,6 +334,15 @@ async function loadData() {
     // 新增：默认计算当前选中月份均值
     calcMonthAvg();
     render();
+
+    // 自动设置日期选择器为最新一天，解决默认显示异常
+    if (allData.length > 0) {
+      const last = allData[allData.length - 1];
+      const [m, d] = last.日期.split('.').map(Number);
+      const defaultDate = `2026-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      document.getElementById('selectDate').value = defaultDate;
+    }
+
     document.getElementById('status').innerText = "✅ 数据加载完成";
   } catch (e) {
     document.getElementById('status').innerText = "❌ 加载失败";
