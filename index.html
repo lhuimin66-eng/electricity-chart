@@ -7,34 +7,37 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; font-family:system-ui, sans-serif; }
-    body { background:#f5f7fa; padding:20px; max-width:1400px; margin:0 auto; }
-    h1 { text-align:center; margin-bottom:8px; font-size:24px; }
+    body { background:#f5f7fa; padding:20px; max-width:1200px; margin:0 auto; }
+    h1 { text-align:center; margin-bottom:8px; font-size:22px; }
     .status { text-align:center; color:#666; font-size:14px; margin-bottom:16px; }
 
-    /* 月份选择器 */
-    .month-select {
-      text-align: center;
+    /* 原有单日驾驶舱 */
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
       margin-bottom: 20px;
     }
-    .month-select select {
-      padding: 8px 12px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+    /* 新增月度统计驾驶舱 */
+    .month-dashboard-wrap{
+      margin-bottom:24px;
     }
-
-    /* 驾驶舱 */
-    .dashboard {
+    .month-select-box{
+      text-align:center;
+      margin-bottom:12px;
+    }
+    .month-dashboard {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 16px;
-      margin-bottom: 24px;
     }
+
     .dash-card {
       background: white;
-      padding: 22px;
+      padding: 20px;
       border-radius: 12px;
       text-align: center;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
     .dash-label {
       font-size: 14px;
@@ -42,32 +45,52 @@
       margin-bottom: 8px;
     }
     .dash-value {
-      font-size: 24px;
+      font-size: 22px;
       font-weight: bold;
       color: #2563eb;
-      margin-bottom: 4px;
     }
-    .dash-ring {
-      font-size: 14px;
-      font-weight: 600;
-    }
-    .up { color: #e53e3e; }
-    .down { color: #38a169; }
     .dash-unit {
       font-size: 13px;
       color: #888;
       margin-top: 4px;
     }
+    .dash-date {
+      font-size: 12px;
+      color: #999;
+      margin-top: 6px;
+    }
+    .rate-up{
+      color:#e53e3e;
+      font-size:13px;
+      margin-top:4px;
+    }
+    .rate-down{
+      color:#38a169;
+      font-size:13px;
+      margin-top:4px;
+    }
+    .rate-none{
+      color:#999;
+      font-size:13px;
+      margin-top:4px;
+    }
 
     /* 日期选择器 */
-    .date-picker-box, .select-box {
+    .date-picker-box {
       text-align: center;
       margin-bottom: 20px;
     }
-    #selectDate, #period {
-      padding: 8px 12px;
-      border-radius: 8px;
+    .date-picker-box input,
+    .month-select-box select,
+    #period {
+      padding: 6px 10px;
+      border-radius: 6px;
       border: 1px solid #ccc;
+    }
+
+    .select-box {
+      text-align:center;
+      margin-bottom:20px;
     }
 
     .card { background:white; border-radius:12px; padding:20px; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
@@ -92,68 +115,94 @@
       margin-bottom:6px;
       color:#1e3a8a;
     }
+    .analysis-box p {
+      margin:4px 0;
+      color:#1e293b;
+    }
   </style>
 </head>
 
 <body>
-  <h1>⚡ 电力数据可视化系统</h1>
+  <h1>  电力数据可视化系统</h1>
   <div class="status" id="status">加载中...</div>
 
-  <!-- 月度统计驾驶舱 -->
-  <div class="month-select">
-    <span style="margin-right:8px;">📅 选择月份查看月度均值：</span>
-    <select id="monthSelect" onchange="renderMonthDashboard()">
-      <option value="1">1 月</option>
-      <option value="2">2 月</option>
-      <option value="3">3 月</option>
-      <option value="4">4 月</option>
-    </select>
-  </div>
-
+  <!-- 【保留】原有：昨日单日数据驾驶舱 -->
   <div class="dashboard">
     <div class="dash-card">
-      <div class="dash-label">月均发电侧电量</div>
-      <div class="dash-value" id="monthGen">-</div>
-      <div class="dash-unit">MWh/日</div>
-      <div class="dash-ring" id="monthGenRing">-</div>
+      <div class="dash-label">昨日发电侧电量</div>
+      <div class="dash-value" id="lastGen">-</div>
+      <div class="dash-unit">MWh</div>
+      <div class="dash-date" id="lastDate">-</div>
     </div>
     <div class="dash-card">
-      <div class="dash-label">月均用户侧电量</div>
-      <div class="dash-value" id="monthUse">-</div>
-      <div class="dash-unit">MWh/日</div>
-      <div class="dash-ring" id="monthUseRing">-</div>
+      <div class="dash-label">昨日用户侧电量</div>
+      <div class="dash-value" id="lastUse">-</div>
+      <div class="dash-unit">MWh</div>
+      <div class="dash-date">-</div>
     </div>
     <div class="dash-card">
-      <div class="dash-label">月均电价</div>
-      <div class="dash-value" id="monthPrice">-</div>
+      <div class="dash-label">昨日电价</div>
+      <div class="dash-value" id="lastPrice">-</div>
       <div class="dash-unit">元/MWh</div>
-      <div class="dash-ring" id="monthPriceRing">-</div>
-    </div>
-    <div class="dash-card">
-      <div class="dash-label">有效统计天数</div>
-      <div class="dash-value" id="monthDays">-</div>
-      <div class="dash-unit">天</div>
-      <div class="dash-ring" style="opacity:0;">-</div>
+      <div class="dash-date">-</div>
     </div>
   </div>
 
-  <!-- 单天查询 -->
+  <!-- 【新增】月度均值+环比驾驶舱 -->
+  <div class="month-dashboard-wrap">
+    <div class="month-select-box">
+      <span style="margin-right:8px;">选择统计月份：</span>
+      <select id="monthSelect" onchange="calcMonthAvg()">
+        <option value="1">1月</option>
+        <option value="2">2月</option>
+        <option value="3">3月</option>
+        <option value="4">4月</option>
+      </select>
+    </div>
+    <div class="month-dashboard">
+      <div class="dash-card">
+        <div class="dash-label">月度日均发电电量</div>
+        <div class="dash-value" id="monthAvgGen">-</div>
+        <div class="dash-unit">MWh/日</div>
+        <div id="genRate" class="rate-none">环比 -</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-label">月度日均用户电量</div>
+        <div class="dash-value" id="monthAvgUser">-</div>
+        <div class="dash-unit">MWh/日</div>
+        <div id="userRate" class="rate-none">环比 -</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-label">月度平均电价</div>
+        <div class="dash-value" id="monthAvgPrice">-</div>
+        <div class="dash-unit">元/MWh</div>
+        <div id="priceRate" class="rate-none">环比 -</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-label">当月有效统计天数</div>
+        <div class="dash-value" id="monthDayCount">-</div>
+        <div class="dash-unit">天</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 日期选择器：手动选某天查看 -->
   <div class="date-picker-box">
-    <span>选择日期查看：</span>
+    <span style="margin-right:8px;">选择日期查看：</span>
     <input type="date" id="selectDate" onchange="selectByDate()">
   </div>
 
   <div class="select-box">
     <select id="period">
       <option value="all">📅 全部数据</option>
-      <option value="1-15">1月 1-15日</option>
-      <option value="16-31">1月 16-31日</option>
-      <option value="2-15">2月 1-15日</option>
-      <option value="16-28">2月 16-28日</option>
-      <option value="3-15">3月 1-15日</option>
-      <option value="16-31-3">3月 16-31日</option>
-      <option value="1-15-4">4月 1-15日</option>
-      <option value="16-30-4">4月 16-30日</option>
+      <option value="1-15">1月 1日-15日</option>
+      <option value="16-31">1月 16日-31日</option>
+      <option value="2-15">2月 1日-15日</option>
+      <option value="16-28">2月 16日-28日</option>
+      <option value="3-15">3月 1日-15日</option>
+      <option value="16-31-3">3月 16日-31日</option>
+      <option value="1-15-4">4月 1日-15日</option>
+      <option value="16-30-4">4月 16日-30日</option>
     </select>
   </div>
 
@@ -162,10 +211,12 @@
     <p>请选择时间段查看分析</p>
   </div>
 
+  <!-- 发电 & 用户 同图对比 -->
   <div class="card">
     <h2>📊 发电侧 vs 用户侧 电量对比</h2>
     <canvas id="chartCompare"></canvas>
   </div>
+
   <div class="card">
     <h2>📈 发电侧成交量</h2>
     <canvas id="chartGen"></canvas>
@@ -198,153 +249,250 @@
 let allData = [];
 let charts = {};
 
-// 单日查询
+// 日期选择器：手动查看某天数据
 function selectByDate() {
-  const s = document.getElementById('selectDate').value;
-  if (!s || !allData.length) return;
-  const [y, m, d] = s.split('-');
-  const target = `${parseInt(m)}.${parseInt(d)}`;
+  const dateStr = document.getElementById('selectDate').value;
+  if (!dateStr || !allData.length) return;
+  const parts = dateStr.split('-');
+  const m = parseInt(parts[1]);
+  const d = parseInt(parts[2]);
+  const target = `${m}.${d}`;
   const item = allData.find(i => i.日期 === target);
   if (!item) return;
 
-  document.getElementById('lastGen').innerText = (+item['发电侧总成交量（MWh）']).toLocaleString();
-  document.getElementById('lastUse').innerText = (+item['用户侧总成交量（MWh)']).toLocaleString();
+  document.getElementById('lastGen').innerText = parseFloat(item['发电侧总成交量（MWh）']).toLocaleString();
+  document.getElementById('lastUse').innerText = parseFloat(item['用户侧总成交量（MWh)']).toLocaleString();
   document.getElementById('lastPrice').innerText = item['用户侧总平均价（元/MWh）'] ?? '待更新';
+  document.getElementById('lastDate').innerText = item.日期;
 }
 
 // 初始化图表
 function initCharts() {
-  const cfg = {
+  const config = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: true, tooltip: { mode: 'index', intersect: false } }
+    plugins: {
+      legend: true,
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+        callbacks: { label: ctx => ctx.dataset.label + '：' + ctx.raw.toLocaleString() }
+      }
+    },
+    scales: { x: { grid: { display: false } } },
+    hover: { mode: 'index', intersect: false }
   };
 
-  charts.compare = new Chart('chartCompare', {
+  // 对比图
+  charts.compare = new Chart(document.getElementById('chartCompare'), {
     type: 'line',
-    data: { labels: [], datasets: [
-      { label: '发电侧', data: [], borderColor: '#2563eb', tension: 0.3 },
-      { label: '用户侧', data: [], borderColor: '#ea580c', tension: 0.3 }
-    ]},
-    options: cfg
+    data: {
+      labels: [],
+      datasets: [
+        { label: '发电侧 (MWh)', data: [], borderColor: '#2563eb', tension: 0.3 },
+        { label: '用户侧 (MWh)', data: [], borderColor: '#ea580c', tension: 0.3 }
+      ]
+    },
+    options: config
   });
 
-  charts.gen = new Chart('chartGen', { type: 'line', data: { labels: [], datasets: [{ label: '发电侧', data: [], borderColor: '#2563eb' }] }, options: cfg });
-  charts.user = new Chart('chartUser', { type: 'line', data: { labels: [], datasets: [{ label: '用户侧', data: [], borderColor: '#0891b2' }] }, options: cfg });
-  charts.price = new Chart('chartPrice', { type: 'line', data: { labels: [], datasets: [{ label: '电价', data: [], borderColor: '#ea580c' }] }, options: cfg });
+  charts.gen = new Chart(document.getElementById('chartGen'), {
+    type: 'line', 
+    data: { 
+      labels: [], 
+      datasets: [{ label: '发电侧 (MWh)', data: [], borderColor: '#2563eb', tension: 0.3 }] 
+    }, 
+    options: config 
+  });
+
+  charts.user = new Chart(document.getElementById('chartUser'), {
+    type: 'line', 
+    data: { 
+      labels: [], 
+      datasets: [{ label: '用户侧 (MWh)', data: [], borderColor: '#0891b2', tension: 0.3 }] 
+    }, 
+    options: config 
+  });
+
+  charts.price = new Chart(document.getElementById('chartPrice'), {
+    type: 'line', 
+    data: { 
+      labels: [], 
+      datasets: [{ label: '电价 (元/MWh)', data: [], borderColor: '#ea580c', tension: 0.3 }] 
+    }, 
+    options: config 
+  });
 }
 
 // 加载数据
 async function loadData() {
   try {
-    const r = await fetch('data.json?v='+Date.now());
-    allData = await r.json();
-    renderMonthDashboard();
+    const res = await fetch('data.json?v='+Date.now());
+    allData = await res.json();
+    // 保留原有：默认显示最新一天
+    renderDashboard();
+    // 新增：默认计算当前选中月份均值
+    calcMonthAvg();
     render();
     document.getElementById('status').innerText = "✅ 数据加载完成";
   } catch (e) {
     document.getElementById('status').innerText = "❌ 加载失败";
+    console.error(e);
   }
 }
 
-// ====================== 【核心】月度均值 + 环比 ======================
-function getMonthData(m) {
-  const list = allData.filter(i => i.日期.split('.')[0] === m);
-  let gen = 0, use = 0, price = 0, cntP = 0;
-  list.forEach(i => {
-    gen += +i['发电侧总成交量（MWh）'] || 0;
-    use += +i['用户侧总成交量（MWh)'] || 0;
-    const p = i['用户侧总平均价（元/MWh）'];
-    if (p != null) { price += +p; cntP++; }
+// 原有：顶部单日驾驶舱（最新一天）
+function renderDashboard() {
+  if (!allData || allData.length === 0) return;
+  const last = allData[allData.length - 1];
+  document.getElementById('lastGen').innerText = parseFloat(last['发电侧总成交量（MWh）']).toLocaleString();
+  document.getElementById('lastUse').innerText = parseFloat(last['用户侧总成交量（MWh)']).toLocaleString();
+  document.getElementById('lastPrice').innerText = last['用户侧总平均价（元/MWh）'] ?? '待更新';
+  document.getElementById('lastDate').innerText = last.日期;
+}
+
+// 【新增】根据月份筛选数据、计算均值、环比
+function getMonthFilterData(monthNum){
+  return allData.filter(item=>{
+    const itemMonth = item.日期.split('.')[0];
+    return itemMonth === String(monthNum);
   });
+}
+// 计算单月统计值
+function calcSingleMonth(month){
+  const monthList = getMonthFilterData(month);
+  let totalGen = 0;
+  let totalUser = 0;
+  let totalPrice = 0;
+  let priceValidCount = 0;
+
+  monthList.forEach(item=>{
+    totalGen += Number(item['发电侧总成交量（MWh）']) || 0;
+    totalUser += Number(item['用户侧总成交量（MWh)']) || 0;
+    const price = item['用户侧总平均价（元/MWh）'];
+    if(price !== null && price !== undefined){
+      totalPrice += Number(price);
+      priceValidCount++;
+    }
+  });
+
+  const dayCount = monthList.length;
   return {
-    days: list.length,
-    genAvg: gen / list.length,
-    useAvg: use / list.length,
-    priceAvg: cntP ? price / cntP : null,
-  };
+    dayCount: dayCount,
+    avgGen: dayCount > 0 ? totalGen / dayCount : 0,
+    avgUser: dayCount > 0 ? totalUser / dayCount : 0,
+    avgPrice: priceValidCount > 0 ? totalPrice / priceValidCount : null
+  }
 }
 
-function renderMonthDashboard() {
-  const m = document.getElementById('monthSelect').value;
-  const curr = getMonthData(m);
-  const prev = m > 1 ? getMonthData(String(+m-1)) : null;
+// 计算月度均值+环比
+function calcMonthAvg(){
+  const currMonth = Number(document.getElementById('monthSelect').value);
+  const currData = calcSingleMonth(currMonth);
+  const prevData = currMonth > 1 ? calcSingleMonth(currMonth - 1) : null;
 
-  const format = n => isNaN(n) ? '-' : n.toFixed(2);
-  const ring = (curr, prev) => {
-    if (!prev) return '';
-    const r = ((curr - prev) / prev * 100).toFixed(1);
-    return r >= 0 ? `<span class="up">↑${r}%</span>` : `<span class="down">↓${Math.abs(r)}%</span>`;
-  };
+  // 赋值月度面板
+  document.getElementById('monthAvgGen').innerText = currData.avgGen.toFixed(2);
+  document.getElementById('monthAvgUser').innerText = currData.avgUser.toFixed(2);
+  document.getElementById('monthAvgPrice').innerText = currData.avgPrice ? currData.avgPrice.toFixed(2) : '暂无数据';
+  document.getElementById('monthDayCount').innerText = currData.dayCount;
 
-  document.getElementById('monthGen').innerText = format(curr.genAvg);
-  document.getElementById('monthUse').innerText = format(curr.useAvg);
-  document.getElementById('monthPrice').innerText = format(curr.priceAvg);
-  document.getElementById('monthDays').innerText = curr.days;
-
-  document.getElementById('monthGenRing').innerHTML = ring(curr.genAvg, prev?.genAvg);
-  document.getElementById('monthUseRing').innerHTML = ring(curr.useAvg, prev?.useAvg);
-  document.getElementById('monthPriceRing').innerHTML = ring(curr.priceAvg, prev?.priceAvg);
+  // 计算环比
+  function getRateText(curr,prev){
+    if(!prev || prev === 0) return `<span class="rate-none">无环比</span>`;
+    const rate = ((curr - prev) / prev * 100).toFixed(2);
+    if(rate > 0){
+      return `<span class="rate-up">环比 ↑${rate}%</span>`;
+    }else if(rate < 0){
+      return `<span class="rate-down">环比 ↓${Math.abs(rate)}%</span>`;
+    }else{
+      return `<span class="rate-none">环比 持平</span>`;
+    }
+  }
+  document.getElementById('genRate').innerHTML = getRateText(currData.avgGen, prevData?.avgGen);
+  document.getElementById('userRate').innerHTML = getRateText(currData.avgUser, prevData?.avgUser);
+  document.getElementById('priceRate').innerHTML = getRateText(currData.avgPrice, prevData?.avgPrice);
 }
 
-// ====================== 原有筛选逻辑 ======================
+// 原有时间段筛选
 function filterData() {
   const v = document.getElementById('period').value;
   if (v === 'all') return allData;
   return allData.filter(item => {
     const [m, d] = item.日期.split('.').map(Number);
-    const map = {
-      '1-15': [1,1,15], '16-31': [1,16,31],
-      '2-15': [2,1,15], '16-28': [2,16,28],
-      '3-15': [3,1,15], '16-31-3': [3,16,31],
-      '1-15-4': [4,1,15], '16-30-4': [4,16,30]
-    };
-    if (!map[v]) return true;
-    const [mm, f, t] = map[v];
-    return m === mm && d >= f && d <= t;
+    if (v === '1-15')   return m === 1 && d >= 1 && d <= 15;
+    if (v === '16-31') return m === 1 && d >= 16 && d <= 31;
+    if (v === '2-15')   return m === 2 && d >= 1 && d <= 15;
+    if (v === '16-28') return m === 2 && d >= 16 && d <= 28;
+    if (v === '3-15')   return m === 3 && d >= 1 && d <= 15;
+    if (v === '16-31-3') return m === 3 && d >= 16 && d <= 31;
+    if (v === '1-15-4') return m === 4 && d >= 1 && d <= 15;
+    if (v === '16-30-4') return m === 4 && d >= 16 && d <= 30;
+    return true;
   });
 }
 
 const analysisText = {
-  "1-15": `<h3>1月上旬</h3><p>用电稳定，电价偏高</p>`,
-  "16-31": `<h3>1月下旬</h3><p>节前负荷回落</p>`,
-  "2-15": `<h3>2月上旬</h3><p>春节假期，电量低位</p>`,
-  "16-28": `<h3>2月下旬</h3><p>复工爬坡</p>`,
-  "3-15": `<h3>3月上旬</h3><p>全面复产</p>`,
-  "16-31-3": `<h3>3月下旬</h3><p>负荷创新高</p>`,
-  "1-15-4": `<h3>4月上旬</h3><p>供需紧平衡</p>`,
-  "16-30-4": `<h3>4月下旬</h3><p>高位运行</p>`,
-  "all": `<h3>全周期</h3><p>季节趋势明显</p>`
+  "1-15": `<h3>📊 1月1日–15日 分析</h3><p>• 用电需求保持高位，工业生产正常，负荷稳定。</p><p>• 电价整体偏高，受冬季用电与供需偏紧影响。</p>`,
+  "16-31": `<h3>📊 1月16日–31日 分析</h3><p>• 春节临近，企业陆续放假，用电负荷开始回落。</p><p>• 电价有所波动，节前用电需求减弱，市场趋于宽松。</p>`,
+  "2-15": `<h3>📊 2月1日–15日 分析</h3><p>• 春节假期核心期，工业用电大幅下降，整体负荷显著走低。</p><p>• 电价明显回落，部分日期低位运行，供需关系宽松。</p>`,
+  "16-28": `<h3>📊 2月16日–28日 分析</h3><p>• 节后复工推进，工业用电逐步回升，负荷持续爬坡。</p><p>• 电价随需求恢复稳步上涨，市场回归正常水平。</p>`,
+  "3-15": `<h3>📊 3月1日–15日 分析</h3><p>• 全面复工复产，用电稳步回升，负荷恢复至节前水平。</p><p>• 电价震荡上行，供需关系逐步回归常态偏紧。</p>`,
+  "16-31-3": `<h3>📊 3月16日–31日 分析</h3><p>• 工业生产满负荷运行，用电量持续攀升创阶段新高。</p><p>• 供需格局持续收紧，电价大幅上涨，市场热度提升。</p>`,
+  "1-15-4": `<h3>📊 4月1日–15日 分析</h3><p>• 用电需求持续攀升，供需缺口进一步扩大。</p><p>• 电价维持高位运行，市场整体偏紧。</p>`,
+  "16-30-4": `<h3>📊 4月16日–30日 分析</h3><p>• 用电负荷保持高位，供需差值明显。</p><p>• 电价受供需关系影响波动明显，后期数据待更新。</p>`,
+  "all": `<h3>📊 全周期分析</h3><p>• 1-2月春节波动，3-4月持续走强，用电趋势清晰。</p><p>• 电价与负荷高度同步，季节性特征显著。</p>`
 };
+
+function updateAnalysis() {
+  const v = document.getElementById('period').value;
+  document.getElementById('analysis').innerHTML = analysisText[v] || analysisText.all;
+}
 
 function render() {
   const data = filterData();
-  const labels = data.map(i => i.日期);
+  const dates = data.map(i => i.日期);
   const gen = data.map(i => +i['发电侧总成交量（MWh）'] || 0);
   const use = data.map(i => +i['用户侧总成交量（MWh)'] || 0);
-  const price = data.map(i => i['用户侧总平均价（元/MWh）'] ?? null);
+  
+  // 电价 兼容null
+  const price = data.map(i => {
+    const v = i['用户侧总平均价（元/MWh）'];
+    return v == null ? null : parseFloat(v);
+  });
 
-  charts.compare.data.labels = labels;
+  // 更新对比图
+  charts.compare.data.labels = dates;
   charts.compare.data.datasets[0].data = gen;
   charts.compare.data.datasets[1].data = use;
   charts.compare.update();
 
-  charts.gen.data.labels = labels; charts.gen.data.datasets[0].data = gen; charts.gen.update();
-  charts.user.data.labels = labels; charts.user.data.datasets[0].data = use; charts.user.update();
-  charts.price.data.labels = labels; charts.price.data.datasets[0].data = price; charts.price.update();
+  charts.gen.data.labels = dates;
+  charts.gen.data.datasets[0].data = gen;
+  charts.gen.update();
 
-  document.getElementById('tableBody').innerHTML = data.map(r => `
-  <tr>
-    <td>${r.日期}</td>
-    <td>${(+r['发电侧总成交量（MWh）']).toLocaleString()}</td>
-    <td>${(+r['用户侧总成交量（MWh)']).toLocaleString()}</td>
-    <td>${r['用户侧总平均价（元/MWh）'] ?? '待更新'}</td>
-  </tr>`).join('');
+  charts.user.data.labels = dates;
+  charts.user.data.datasets[0].data = use;
+  charts.user.update();
 
-  document.getElementById('analysis').innerHTML = analysisText[document.getElementById('period').value];
+  charts.price.data.labels = dates;
+  charts.price.data.datasets[0].data = price;
+  charts.price.update();
+
+  // 表格
+  document.getElementById('tableBody').innerHTML = data.map(row => `
+    <tr>
+      <td>${row.日期}</td>
+      <td>${parseFloat(row['发电侧总成交量（MWh）']).toLocaleString()}</td>
+      <td>${parseFloat(row['用户侧总成交量（MWh)']).toLocaleString()}</td>
+      <td>${row['用户侧总平均价（元/MWh）'] ?? '待更新'}</td>
+    </tr>
+  `).join('');
+
+  updateAnalysis();
 }
 
-document.getElementById('period').onchange = render;
+document.getElementById('period').addEventListener('change', render);
 initCharts();
 loadData();
 </script>
