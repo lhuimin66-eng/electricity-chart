@@ -100,8 +100,9 @@
 
     .filters {
       display: grid;
-      grid-template-columns: repeat(3, minmax(180px, 1fr));
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
       gap: 14px;
+      max-width: 900px;
     }
 
     .filter-item {
@@ -526,6 +527,7 @@
 
       .filters {
         grid-template-columns: 1fr;
+        max-width: none;
       }
 
       .strip-header {
@@ -581,16 +583,6 @@
           <div class="filter-item">
             <label for="selectDate">单日数据查询</label>
             <input type="date" id="selectDate" onchange="selectByDate()" />
-          </div>
-
-          <div class="filter-item">
-            <label for="monthSelect">月度统计口径</label>
-            <select id="monthSelect" onchange="syncMonthFromTop()">
-              <option value="1">2026年1月</option>
-              <option value="2">2026年2月</option>
-              <option value="3">2026年3月</option>
-              <option value="4">2026年4月</option>
-            </select>
           </div>
 
           <div class="filter-item">
@@ -662,7 +654,7 @@
 
         <div class="inline-month-control">
           <label for="monthSelectInline">切换月份</label>
-          <select id="monthSelectInline" onchange="syncMonthFromInline()">
+          <select id="monthSelectInline" onchange="changeMonth()">
             <option value="1">2026年1月</option>
             <option value="2">2026年2月</option>
             <option value="3">2026年3月</option>
@@ -801,25 +793,7 @@
       document.getElementById("status").innerText = "数据状态：已切换至 " + item.日期;
     }
 
-    function syncMonthFromTop() {
-      const topValue = document.getElementById("monthSelect").value;
-      const inlineSelect = document.getElementById("monthSelectInline");
-
-      if (inlineSelect) {
-        inlineSelect.value = topValue;
-      }
-
-      calcMonthAvg();
-    }
-
-    function syncMonthFromInline() {
-      const inlineValue = document.getElementById("monthSelectInline").value;
-      const topSelect = document.getElementById("monthSelect");
-
-      if (topSelect) {
-        topSelect.value = inlineValue;
-      }
-
+    function changeMonth() {
       calcMonthAvg();
     }
 
@@ -1061,12 +1035,7 @@
     }
 
     function calcMonthAvg() {
-      const currMonth = Number(document.getElementById("monthSelect").value);
-
-      const inlineSelect = document.getElementById("monthSelectInline");
-      if (inlineSelect) {
-        inlineSelect.value = String(currMonth);
-      }
+      const currMonth = Number(document.getElementById("monthSelectInline").value);
 
       const currData = calcSingleMonth(currMonth);
       const prevData = currMonth > 1 ? calcSingleMonth(currMonth - 1) : null;
