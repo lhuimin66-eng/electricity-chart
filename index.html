@@ -115,8 +115,8 @@
       color: rgba(226, 232, 240, 0.94);
     }
 
-    input,
-    select {
+    .topbar input,
+    .topbar select {
       height: 38px;
       border-radius: 10px;
       border: 1px solid rgba(255, 255, 255, 0.25);
@@ -128,13 +128,13 @@
       backdrop-filter: blur(8px);
     }
 
-    input:focus,
-    select:focus {
+    .topbar input:focus,
+    .topbar select:focus {
       border-color: rgba(186, 230, 253, 0.95);
       box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
     }
 
-    select option {
+    .topbar select option {
       color: #111827;
       background: #ffffff;
     }
@@ -291,17 +291,48 @@
       align-items: center;
       gap: 12px;
       margin-bottom: 16px;
+      flex-wrap: wrap;
     }
 
     .strip-header h2 {
       font-size: 17px;
       font-weight: 750;
       color: #0f172a;
+      margin-bottom: 4px;
     }
 
     .strip-header span {
       font-size: 12px;
       color: #64748b;
+    }
+
+    .inline-month-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .inline-month-control label {
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    .inline-month-control select {
+      height: 34px;
+      min-width: 132px;
+      border-radius: 9px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #0f172a;
+      padding: 0 10px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .inline-month-control select:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
     }
 
     .strip-grid {
@@ -497,6 +528,19 @@
         grid-template-columns: 1fr;
       }
 
+      .strip-header {
+        align-items: flex-start;
+      }
+
+      .inline-month-control {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .inline-month-control select {
+        flex: 1;
+      }
+
       .strip-grid {
         grid-template-columns: 1fr;
       }
@@ -541,7 +585,7 @@
 
           <div class="filter-item">
             <label for="monthSelect">月度统计口径</label>
-            <select id="monthSelect" onchange="calcMonthAvg()">
+            <select id="monthSelect" onchange="syncMonthFromTop()">
               <option value="1">2026年1月</option>
               <option value="2">2026年2月</option>
               <option value="3">2026年3月</option>
@@ -611,8 +655,20 @@
 
     <section class="month-strip">
       <div class="strip-header">
-        <h2 id="monthTitle">月度统计指标</h2>
-        <span>按日均值统计，并与上月数据进行环比比较</span>
+        <div>
+          <h2 id="monthTitle">月度统计指标</h2>
+          <span>按日均值统计，并与上月数据进行环比比较</span>
+        </div>
+
+        <div class="inline-month-control">
+          <label for="monthSelectInline">切换月份</label>
+          <select id="monthSelectInline" onchange="syncMonthFromInline()">
+            <option value="1">2026年1月</option>
+            <option value="2">2026年2月</option>
+            <option value="3">2026年3月</option>
+            <option value="4">2026年4月</option>
+          </select>
+        </div>
       </div>
 
       <div class="strip-grid">
@@ -711,12 +767,6 @@
       });
     }
 
-    function formatInteger(value) {
-      const num = Number(value);
-      if (!Number.isFinite(num)) return "-";
-      return num.toLocaleString();
-    }
-
     function setLatestCards(item) {
       if (!item) return;
 
@@ -749,6 +799,28 @@
 
       setLatestCards(item);
       document.getElementById("status").innerText = "数据状态：已切换至 " + item.日期;
+    }
+
+    function syncMonthFromTop() {
+      const topValue = document.getElementById("monthSelect").value;
+      const inlineSelect = document.getElementById("monthSelectInline");
+
+      if (inlineSelect) {
+        inlineSelect.value = topValue;
+      }
+
+      calcMonthAvg();
+    }
+
+    function syncMonthFromInline() {
+      const inlineValue = document.getElementById("monthSelectInline").value;
+      const topSelect = document.getElementById("monthSelect");
+
+      if (topSelect) {
+        topSelect.value = inlineValue;
+      }
+
+      calcMonthAvg();
     }
 
     function initCharts() {
@@ -990,6 +1062,12 @@
 
     function calcMonthAvg() {
       const currMonth = Number(document.getElementById("monthSelect").value);
+
+      const inlineSelect = document.getElementById("monthSelectInline");
+      if (inlineSelect) {
+        inlineSelect.value = String(currMonth);
+      }
+
       const currData = calcSingleMonth(currMonth);
       const prevData = currMonth > 1 ? calcSingleMonth(currMonth - 1) : null;
 
