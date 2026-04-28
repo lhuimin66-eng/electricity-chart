@@ -15,7 +15,11 @@
     }
 
     body {
-      background: #f3f6fb;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 32%),
+        radial-gradient(circle at top right, rgba(14, 165, 233, 0.16), transparent 28%),
+        linear-gradient(135deg, #f3f7ff 0%, #eef4fb 45%, #f8fafc 100%);
       color: #1f2937;
       padding: 24px;
     }
@@ -27,14 +31,41 @@
 
     /* 顶部标题区 */
     .header {
-      background: #ffffff;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      padding: 22px 26px;
-      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #0369a1 100%);
+      border: none;
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      color: #ffffff;
+      box-shadow: 0 18px 42px rgba(15, 23, 42, 0.2);
+    }
+
+    .header::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 36px 36px;
+      opacity: 0.45;
+    }
+
+    .header::after {
+      content: "";
+      position: absolute;
+      right: -90px;
+      top: -90px;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(255,255,255,0.24), transparent 65%);
     }
 
     .header-top {
+      position: relative;
+      z-index: 2;
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
@@ -43,73 +74,93 @@
     }
 
     .title-group h1 {
-      font-size: 24px;
-      font-weight: 600;
-      color: #0f172a;
-      margin-bottom: 6px;
-      letter-spacing: 0.5px;
+      font-size: 28px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 8px;
+      letter-spacing: 0.8px;
     }
 
     .subtitle {
       font-size: 13px;
-      color: #64748b;
+      color: rgba(226, 232, 240, 0.92);
+      letter-spacing: 0.2px;
     }
 
     .status {
       font-size: 13px;
-      color: #475569;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 4px;
-      padding: 8px 12px;
+      color: #e0f2fe;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 999px;
+      padding: 9px 16px;
+      backdrop-filter: blur(8px);
       white-space: nowrap;
     }
 
     /* 筛选区 */
     .filter-bar {
+      position: relative;
+      z-index: 2;
       display: grid;
       grid-template-columns: repeat(3, minmax(220px, 1fr));
       gap: 16px;
-      margin-top: 20px;
+      margin-top: 26px;
     }
 
     .filter-item {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 7px;
     }
 
     .filter-item label {
       font-size: 13px;
-      color: #475569;
+      color: rgba(226, 232, 240, 0.92);
     }
 
-    input,
-    select {
-      height: 36px;
-      padding: 6px 10px;
-      border-radius: 4px;
-      border: 1px solid #cbd5e1;
-      background: #ffffff;
-      color: #1f2937;
+    .header input,
+    .header select {
+      height: 38px;
+      padding: 6px 12px;
+      border-radius: 9px;
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      background: rgba(255, 255, 255, 0.14);
+      color: #ffffff;
       font-size: 14px;
       outline: none;
+      backdrop-filter: blur(10px);
     }
 
-    input:focus,
-    select:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+    .header input:focus,
+    .header select:focus {
+      border-color: rgba(186, 230, 253, 0.9);
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.22);
+    }
+
+    .header select option {
+      color: #111827;
+      background: #ffffff;
     }
 
     /* 区块标题 */
     .section-title {
-      font-size: 17px;
-      font-weight: 600;
-      color: #111827;
-      margin: 26px 0 14px;
-      padding-left: 10px;
-      border-left: 4px solid #1d4ed8;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 28px 0 14px;
+    }
+
+    .section-title::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #2563eb;
+      box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.12);
     }
 
     /* 指标卡片 */
@@ -128,127 +179,220 @@
     }
 
     .dash-card {
-      background: #ffffff;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      padding: 18px 20px;
-      min-height: 118px;
+      position: relative;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(226, 232, 240, 0.95);
+      border-radius: 15px;
+      padding: 20px 22px;
+      min-height: 126px;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.07);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .dash-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(180deg, #2563eb, #06b6d4);
+    }
+
+    .dash-card::after {
+      content: "";
+      position: absolute;
+      right: -42px;
+      top: -42px;
+      width: 128px;
+      height: 128px;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.13), transparent 65%);
+    }
+
+    .dash-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 38px rgba(15, 23, 42, 0.13);
     }
 
     .dash-label {
+      position: relative;
+      z-index: 2;
       font-size: 13px;
       color: #64748b;
       margin-bottom: 10px;
     }
 
     .dash-value {
-      font-size: 25px;
-      font-weight: 600;
-      color: #1d4ed8;
+      position: relative;
+      z-index: 2;
+      font-size: 28px;
+      font-weight: 750;
+      color: #0f172a;
       line-height: 1.2;
+      letter-spacing: -0.3px;
       word-break: break-all;
     }
 
-    .dash-unit {
-      font-size: 12px;
-      color: #94a3b8;
-      margin-top: 6px;
-    }
-
+    .dash-unit,
     .dash-date {
+      position: relative;
+      z-index: 2;
       font-size: 12px;
       color: #94a3b8;
       margin-top: 6px;
     }
 
     .rate-up {
+      position: relative;
+      z-index: 2;
       color: #b91c1c;
       font-size: 13px;
-      margin-top: 6px;
+      margin-top: 7px;
+      font-weight: 600;
     }
 
     .rate-down {
+      position: relative;
+      z-index: 2;
       color: #047857;
       font-size: 13px;
-      margin-top: 6px;
+      margin-top: 7px;
+      font-weight: 600;
     }
 
     .rate-none {
+      position: relative;
+      z-index: 2;
       color: #64748b;
       font-size: 13px;
-      margin-top: 6px;
+      margin-top: 7px;
     }
 
     /* 分析说明 */
     .analysis-box {
-      background: #ffffff;
-      border: 1px solid #dbe3ef;
-      border-left: 4px solid #1d4ed8;
-      border-radius: 6px;
-      padding: 16px 18px;
-      margin-bottom: 20px;
-      line-height: 1.65;
+      position: relative;
+      background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+      border: 1px solid #dbeafe;
+      border-radius: 15px;
+      padding: 19px 22px;
+      margin-bottom: 22px;
+      line-height: 1.72;
       font-size: 14px;
+      box-shadow: 0 10px 26px rgba(37, 99, 235, 0.06);
+      overflow: hidden;
+    }
+
+    .analysis-box::before {
+      content: "AI ANALYSIS";
+      position: absolute;
+      right: 18px;
+      top: 14px;
+      font-size: 11px;
+      color: #93c5fd;
+      letter-spacing: 1.5px;
+      font-weight: 800;
+    }
+
+    .analysis-box::after {
+      content: "";
+      position: absolute;
+      right: -50px;
+      bottom: -50px;
+      width: 150px;
+      height: 150px;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.08), transparent 65%);
     }
 
     .analysis-box h3 {
-      font-size: 15px;
-      font-weight: 600;
+      position: relative;
+      z-index: 2;
+      font-size: 16px;
+      font-weight: 700;
       margin-bottom: 8px;
       color: #0f172a;
     }
 
     .analysis-box p {
-      margin: 4px 0;
+      position: relative;
+      z-index: 2;
+      margin: 5px 0;
       color: #334155;
+      max-width: 960px;
     }
 
     /* 图表卡片 */
     .card {
-      background: #ffffff;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 20px;
+      position: relative;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(226, 232, 240, 0.95);
+      border-radius: 15px;
+      padding: 22px;
+      margin-bottom: 22px;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 3px;
+      width: 100%;
+      background: linear-gradient(90deg, #1d4ed8, #06b6d4, transparent);
     }
 
     .card h2 {
       font-size: 16px;
-      font-weight: 600;
-      color: #111827;
-      margin-bottom: 14px;
-      padding-left: 10px;
-      border-left: 4px solid #1d4ed8;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card h2::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #2563eb;
+      box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.12);
     }
 
     canvas {
       width: 100% !important;
-      height: 300px !important;
+      height: 310px !important;
     }
 
     /* 表格 */
     .table-wrap {
       overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 14px;
+      background: #ffffff;
     }
 
     th,
     td {
-      padding: 11px 10px;
+      padding: 12px 10px;
       text-align: center;
       border-bottom: 1px solid #e5e7eb;
       white-space: nowrap;
     }
 
     th {
-      background: #f8fafc;
-      color: #475569;
-      font-weight: 600;
+      background: linear-gradient(180deg, #f8fafc, #eef4fb);
+      color: #334155;
+      font-weight: 700;
     }
 
     td {
@@ -256,33 +400,33 @@
     }
 
     tr:hover td {
-      background: #f8fafc;
+      background: #eff6ff;
     }
 
     .footer-note {
-      margin-top: 16px;
+      margin-top: 14px;
       font-size: 12px;
       color: #94a3b8;
       text-align: right;
     }
 
     @media (max-width: 960px) {
-      .dashboard,
-      .month-dashboard,
-      .filter-bar {
-        grid-template-columns: 1fr;
-      }
-
       body {
         padding: 14px;
       }
 
       .header {
-        padding: 18px;
+        padding: 22px;
       }
 
       .title-group h1 {
-        font-size: 21px;
+        font-size: 23px;
+      }
+
+      .dashboard,
+      .month-dashboard,
+      .filter-bar {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -466,7 +610,6 @@
       document.getElementById("lastPriceDate").innerText = "统计日期：" + item.日期;
     }
 
-    // 日期选择器：手动查看某天数据
     function selectByDate() {
       const dateStr = document.getElementById("selectDate").value;
       if (!dateStr || !allData.length) return;
@@ -487,8 +630,25 @@
       document.getElementById("status").innerText = "数据状态：已切换至 " + item.日期;
     }
 
-    // 初始化图表
     function initCharts() {
+      const ctxCompare = document.getElementById("chartCompare").getContext("2d");
+      const ctxGen = document.getElementById("chartGen").getContext("2d");
+      const ctxUser = document.getElementById("chartUser").getContext("2d");
+      const ctxPrice = document.getElementById("chartPrice").getContext("2d");
+
+      function createGradient(ctx, color) {
+        const gradient = ctx.createLinearGradient(0, 0, 0, 310);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(1, "rgba(255,255,255,0)");
+        return gradient;
+      }
+
+      const blueGradient = createGradient(ctxGen, "rgba(37, 99, 235, 0.24)");
+      const tealGradient = createGradient(ctxUser, "rgba(20, 184, 166, 0.22)");
+      const orangeGradient = createGradient(ctxPrice, "rgba(245, 158, 11, 0.22)");
+      const compareBlueGradient = createGradient(ctxCompare, "rgba(37, 99, 235, 0.18)");
+      const compareSlateGradient = createGradient(ctxCompare, "rgba(71, 85, 105, 0.15)");
+
       const baseOptions = {
         responsive: true,
         maintainAspectRatio: false,
@@ -510,10 +670,11 @@
           tooltip: {
             mode: "index",
             intersect: false,
-            backgroundColor: "rgba(15, 23, 42, 0.9)",
+            backgroundColor: "rgba(15, 23, 42, 0.92)",
             titleColor: "#ffffff",
             bodyColor: "#ffffff",
-            padding: 10,
+            padding: 11,
+            cornerRadius: 8,
             callbacks: {
               label: ctx => {
                 const value = ctx.raw == null ? "暂无数据" : Number(ctx.raw).toLocaleString();
@@ -528,7 +689,10 @@
               display: false
             },
             ticks: {
-              color: "#64748b"
+              color: "#64748b",
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: 12
             }
           },
           y: {
@@ -542,7 +706,7 @@
         }
       };
 
-      charts.compare = new Chart(document.getElementById("chartCompare"), {
+      charts.compare = new Chart(ctxCompare, {
         type: "line",
         data: {
           labels: [],
@@ -551,41 +715,22 @@
               label: "发电侧成交电量（MWh）",
               data: [],
               borderColor: "#1d4ed8",
-              backgroundColor: "rgba(29, 78, 216, 0.08)",
-              borderWidth: 2,
-              pointRadius: 2,
-              pointHoverRadius: 4,
-              tension: 0.28
+              backgroundColor: compareBlueGradient,
+              borderWidth: 2.4,
+              pointRadius: 0,
+              pointHoverRadius: 5,
+              tension: 0.36,
+              fill: true
             },
             {
               label: "用户侧成交电量（MWh）",
               data: [],
               borderColor: "#475569",
-              backgroundColor: "rgba(71, 85, 105, 0.08)",
-              borderWidth: 2,
-              pointRadius: 2,
-              pointHoverRadius: 4,
-              tension: 0.28
-            }
-          ]
-        },
-        options: baseOptions
-      });
-
-      charts.gen = new Chart(document.getElementById("chartGen"), {
-        type: "line",
-        data: {
-          labels: [],
-          datasets: [
-            {
-              label: "发电侧成交电量（MWh）",
-              data: [],
-              borderColor: "#1d4ed8",
-              backgroundColor: "rgba(29, 78, 216, 0.08)",
-              borderWidth: 2,
-              pointRadius: 2,
-              pointHoverRadius: 4,
-              tension: 0.28,
+              backgroundColor: compareSlateGradient,
+              borderWidth: 2.4,
+              pointRadius: 0,
+              pointHoverRadius: 5,
+              tension: 0.36,
               fill: true
             }
           ]
@@ -593,7 +738,28 @@
         options: baseOptions
       });
 
-      charts.user = new Chart(document.getElementById("chartUser"), {
+      charts.gen = new Chart(ctxGen, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "发电侧成交电量（MWh）",
+              data: [],
+              borderColor: "#1d4ed8",
+              backgroundColor: blueGradient,
+              borderWidth: 2.4,
+              pointRadius: 0,
+              pointHoverRadius: 5,
+              tension: 0.36,
+              fill: true
+            }
+          ]
+        },
+        options: baseOptions
+      });
+
+      charts.user = new Chart(ctxUser, {
         type: "line",
         data: {
           labels: [],
@@ -602,11 +768,11 @@
               label: "用户侧成交电量（MWh）",
               data: [],
               borderColor: "#0f766e",
-              backgroundColor: "rgba(15, 118, 110, 0.08)",
-              borderWidth: 2,
-              pointRadius: 2,
-              pointHoverRadius: 4,
-              tension: 0.28,
+              backgroundColor: tealGradient,
+              borderWidth: 2.4,
+              pointRadius: 0,
+              pointHoverRadius: 5,
+              tension: 0.36,
               fill: true
             }
           ]
@@ -614,7 +780,7 @@
         options: baseOptions
       });
 
-      charts.price = new Chart(document.getElementById("chartPrice"), {
+      charts.price = new Chart(ctxPrice, {
         type: "line",
         data: {
           labels: [],
@@ -623,11 +789,11 @@
               label: "用户侧平均电价（元/MWh）",
               data: [],
               borderColor: "#b45309",
-              backgroundColor: "rgba(180, 83, 9, 0.08)",
-              borderWidth: 2,
-              pointRadius: 2,
-              pointHoverRadius: 4,
-              tension: 0.28,
+              backgroundColor: orangeGradient,
+              borderWidth: 2.4,
+              pointRadius: 0,
+              pointHoverRadius: 5,
+              tension: 0.36,
               fill: true,
               spanGaps: true
             }
@@ -637,7 +803,6 @@
       });
     }
 
-    // 加载数据
     async function loadData() {
       try {
         const res = await fetch("data.json?v=" + Date.now());
@@ -661,14 +826,12 @@
       }
     }
 
-    // 顶部单日驾驶舱：默认显示最新一天
     function renderDashboard() {
       if (!allData || allData.length === 0) return;
       const last = allData[allData.length - 1];
       setLatestCards(last);
     }
 
-    // 根据月份筛选数据
     function getMonthFilterData(monthNum) {
       return allData.filter(item => {
         const itemMonth = item.日期.split(".")[0];
@@ -676,7 +839,6 @@
       });
     }
 
-    // 计算单月统计值
     function calcSingleMonth(month) {
       const monthList = getMonthFilterData(month);
       let totalGen = 0;
@@ -705,7 +867,6 @@
       };
     }
 
-    // 计算月度均值与环比
     function calcMonthAvg() {
       const currMonth = Number(document.getElementById("monthSelect").value);
       const currData = calcSingleMonth(currMonth);
@@ -738,7 +899,6 @@
       document.getElementById("priceRate").innerHTML = getRateText(currData.avgPrice, prevData?.avgPrice);
     }
 
-    // 时间段筛选
     function filterData() {
       const v = document.getElementById("period").value;
 
