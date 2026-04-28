@@ -32,7 +32,7 @@
     .topbar {
       background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 58%, #0369a1 100%);
       border-radius: 18px;
-      padding: 24px 28px 22px;
+      padding: 26px 30px;
       color: #ffffff;
       box-shadow: 0 18px 45px rgba(15, 23, 42, 0.2);
       position: relative;
@@ -72,7 +72,6 @@
       align-items: flex-start;
       gap: 18px;
       flex-wrap: wrap;
-      margin-bottom: 22px;
     }
 
     h1 {
@@ -96,48 +95,6 @@
       padding: 8px 15px;
       backdrop-filter: blur(8px);
       white-space: nowrap;
-    }
-
-    .filters {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(220px, 1fr));
-      gap: 14px;
-      max-width: 900px;
-    }
-
-    .filter-item {
-      display: flex;
-      flex-direction: column;
-      gap: 7px;
-    }
-
-    .filter-item label {
-      font-size: 13px;
-      color: rgba(226, 232, 240, 0.94);
-    }
-
-    .topbar input,
-    .topbar select {
-      height: 38px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      padding: 0 12px;
-      background: rgba(255, 255, 255, 0.14);
-      color: #ffffff;
-      outline: none;
-      font-size: 14px;
-      backdrop-filter: blur(8px);
-    }
-
-    .topbar input:focus,
-    .topbar select:focus {
-      border-color: rgba(186, 230, 253, 0.95);
-      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
-    }
-
-    .topbar select option {
-      color: #111827;
-      background: #ffffff;
     }
 
     .main-layout {
@@ -178,6 +135,7 @@
       justify-content: space-between;
       gap: 12px;
       margin-bottom: 18px;
+      flex-wrap: wrap;
     }
 
     .panel-title h2 {
@@ -206,6 +164,37 @@
       border-radius: 999px;
       padding: 5px 10px;
       white-space: nowrap;
+    }
+
+    .panel-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .panel-control label {
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    .panel-control select,
+    .panel-control input {
+      height: 34px;
+      min-width: 150px;
+      border-radius: 9px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #0f172a;
+      padding: 0 10px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .panel-control select:focus,
+    .panel-control input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
     }
 
     canvas {
@@ -305,35 +294,6 @@
     .strip-header span {
       font-size: 12px;
       color: #64748b;
-    }
-
-    .inline-month-control {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      white-space: nowrap;
-    }
-
-    .inline-month-control label {
-      font-size: 13px;
-      color: #64748b;
-    }
-
-    .inline-month-control select {
-      height: 34px;
-      min-width: 132px;
-      border-radius: 9px;
-      border: 1px solid #cbd5e1;
-      background: #ffffff;
-      color: #0f172a;
-      padding: 0 10px;
-      font-size: 13px;
-      outline: none;
-    }
-
-    .inline-month-control select:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
     }
 
     .strip-grid {
@@ -525,22 +485,15 @@
         font-size: 23px;
       }
 
-      .filters {
-        grid-template-columns: 1fr;
-        max-width: none;
-      }
-
-      .strip-header {
-        align-items: flex-start;
-      }
-
-      .inline-month-control {
+      .panel-control {
         width: 100%;
         justify-content: space-between;
       }
 
-      .inline-month-control select {
+      .panel-control select,
+      .panel-control input {
         flex: 1;
+        min-width: 0;
       }
 
       .strip-grid {
@@ -578,14 +531,15 @@
           </div>
           <div class="status" id="status">数据状态：正在加载</div>
         </div>
+      </div>
+    </header>
 
-        <div class="filters">
-          <div class="filter-item">
-            <label for="selectDate">单日数据查询</label>
-            <input type="date" id="selectDate" onchange="selectByDate()" />
-          </div>
+    <main class="main-layout">
+      <section class="panel hero-chart">
+        <div class="panel-title">
+          <h2>发电侧与用户侧成交电量总览</h2>
 
-          <div class="filter-item">
+          <div class="panel-control">
             <label for="period">趋势分析时段</label>
             <select id="period">
               <option value="all">全部数据</option>
@@ -600,21 +554,18 @@
             </select>
           </div>
         </div>
-      </div>
-    </header>
 
-    <main class="main-layout">
-      <section class="panel hero-chart">
-        <div class="panel-title">
-          <h2>发电侧与用户侧成交电量总览</h2>
-          <div class="panel-tag" id="currentPeriodText">全部数据</div>
-        </div>
         <canvas id="chartCompare"></canvas>
       </section>
 
       <aside class="panel side-overview">
         <div class="panel-title">
           <h2>最新交易概览</h2>
+
+          <div class="panel-control">
+            <label for="selectDate">查询日期</label>
+            <input type="date" id="selectDate" onchange="selectByDate()" />
+          </div>
         </div>
 
         <div class="overview-date" id="overviewDate">统计日期：-</div>
@@ -652,7 +603,7 @@
           <span>按日均值统计，并与上月数据进行环比比较</span>
         </div>
 
-        <div class="inline-month-control">
+        <div class="panel-control">
           <label for="monthSelectInline">切换月份</label>
           <select id="monthSelectInline" onchange="changeMonth()">
             <option value="1">2026年1月</option>
@@ -1090,18 +1041,6 @@
       });
     }
 
-    const periodNameMap = {
-      "all": "全部数据",
-      "1-15": "1月1日—1月15日",
-      "16-31": "1月16日—1月31日",
-      "2-15": "2月1日—2月15日",
-      "16-28": "2月16日—2月28日",
-      "3-15": "3月1日—3月15日",
-      "16-31-3": "3月16日—3月31日",
-      "1-15-4": "4月1日—4月15日",
-      "16-30-4": "4月16日—4月30日"
-    };
-
     const analysisText = {
       "1-15": `
         <h3>1月1日—1月15日运行特征分析</h3>
@@ -1161,7 +1100,6 @@
     function updateAnalysis() {
       const v = document.getElementById("period").value;
       document.getElementById("analysis").innerHTML = analysisText[v] || analysisText.all;
-      document.getElementById("currentPeriodText").innerText = periodNameMap[v] || "全部数据";
     }
 
     function render() {
