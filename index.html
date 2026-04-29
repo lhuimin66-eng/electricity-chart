@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>广东电力市场交易数据分析平台</title>
+  <title>皓朗-电力市场交易数据分析平台</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
@@ -159,7 +159,7 @@
       border-radius: 18px;
       box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
       position: relative;
-      overflow: hidden;
+      overflow: visible;
     }
 
     .panel::before {
@@ -170,6 +170,7 @@
       height: 3px;
       width: 100%;
       background: linear-gradient(90deg, #1d4ed8, #06b6d4, transparent);
+      border-radius: 18px 18px 0 0;
     }
 
     .hero-chart {
@@ -245,18 +246,17 @@
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
     }
 
-    /* 新增：趋势分析时段固定悬浮在页面右侧中间 */
+    /* 第一种：sticky 粘性定位 */
     .sticky-period-control {
-      position: fixed;
-      right: 34px;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 999;
+      position: sticky;
+      top: 45vh;
+      z-index: 80;
+      margin-left: auto;
       background: rgba(255, 255, 255, 0.96);
       border: 1px solid #dbeafe;
       border-radius: 14px;
-      padding: 12px 14px;
-      box-shadow: 0 14px 32px rgba(15, 23, 42, 0.16);
+      padding: 10px 12px;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
       backdrop-filter: blur(8px);
     }
 
@@ -510,10 +510,6 @@
       .strip-item:nth-child(2) {
         border-bottom: 1px solid #e5e7eb;
       }
-
-      .sticky-period-control {
-        right: 18px;
-      }
     }
 
     @media (max-width: 760px) {
@@ -548,6 +544,18 @@
         min-width: 0;
       }
 
+      .sticky-period-control {
+        position: sticky;
+        top: 12px;
+        width: 100%;
+        margin-left: 0;
+        justify-content: space-between;
+      }
+
+      .sticky-period-control select {
+        min-width: 0;
+      }
+
       .strip-grid {
         grid-template-columns: 1fr;
       }
@@ -567,21 +575,6 @@
 
       .small-chart canvas {
         height: 260px !important;
-      }
-
-      /* 手机端改成底部悬浮，避免挡住图表 */
-      .sticky-period-control {
-        left: 14px;
-        right: 14px;
-        top: auto;
-        bottom: 18px;
-        transform: none;
-        width: auto;
-        justify-content: space-between;
-      }
-
-      .sticky-period-control select {
-        min-width: 0;
       }
     }
   </style>
