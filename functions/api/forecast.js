@@ -54,9 +54,9 @@ function buildForecast(data) {
   const userValues = recent.map(i => toNumber(i["用户侧总成交量（MWh)"])).filter(v => v !== null);
   const priceValues = recent.map(i => toNumber(i["用户侧总平均价（元/MWh）"])).filter(v => v !== null);
 
- const genForecast = forecastSeries(genValues, 15, 0.04, 0.015);
+const genForecast = forecastSeries(genValues, 15, 0.04, 0.015);
 const userForecast = forecastSeries(userValues, 15, 0.04, 0.015);
-const priceForecast = forecastSeries(priceValues, 15, 0.015, 0.006);
+const priceForecast = forecastPriceSeries(priceValues, 15);
 
   return dates.map((date, index) => ({
     date,
@@ -96,6 +96,46 @@ function forecastSeries(values, count, maxStepRate = 0.04, waveRate = 0.015) {
     const max = avg * 1.08;
 
     result.push(clamp(value, min, max));
+  }
+
+  return result;
+}
+function forecastPriceSeries(values, count) {
+  const cleanValues = values.filter(v => v !== null && v !== undefined && Number.isFinite(Number(v)));
+
+  if (!cleanValues.length) {
+    return Array(count).fill(null);
+  }
+
+  const avg = average(cleanValues);
+  const last = cleanValues.at(-1);
+
+  let trend = 0;
+
+  if (cleanValues.length >= 2) {
+    const diffs = [];
+
+    for (let i = 1; i < cleanValues.length; i++) {
+      diffs.push(cleanValues[i] - cleanValues[i - 1]);
+    }
+
+    trend = average(diffs);
+  }
+
+  if (Math.abs(trend) < 0.08) {
+    trend = avg >= last ? 0.12 : -0.12;
+  }
+
+  trend = clamp(trend, -0.8, 0.8);
+
+  const result = [];
+
+  for (let i = 1; i <= count; i++) {
+    const wave = Math.sin(i / 2.2) * 1.35;
+    const microWave = Math.cos(i / 1.6) * 0.55;
+    const value = last + trend * i + wave + microWave;
+
+    result.push(clamp(value, avg - 8, avg + 8));
   }
 
   return result;
@@ -179,7 +219,7 @@ function round(value, digits) {
 
 async function createCacheKey(period, data) {
   const raw = JSON.stringify({
-    type: "forecast-v3",
+    type: "forecast-v4",
     period,
     data
   });
