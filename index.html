@@ -592,7 +592,45 @@
       series.forEach((data, i) => chart.data.datasets[i].data = data);
       chart.update();
     }
+let aiAnalyzeTimer = null;
 
+function updateAIAnalysis(data) {
+  clearTimeout(aiAnalyzeTimer);
+
+  aiAnalyzeTimer = setTimeout(async () => {
+    $("analysis").innerHTML = `
+      <h3>AI 实时分析</h3>
+      <p>正在根据当前时段数据生成分析，请稍候...</p>
+    `;
+
+    try {
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          period: $("period").selectedOptions[0].text,
+          data
+        })
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.error || "AI 分析失败");
+      }
+
+      $("analysis").innerHTML = `
+        <h3>${result.source === "cache" ? "缓存分析" : "AI 实时分析"}</h3>
+        <p>${result.analysis}</p>
+      `;
+    } catch (error) {
+      $("analysis").innerHTML = analysisText[$("period").value] || analysisText.all;
+      console.error(error);
+    }
+  }, 300);
+}
     function render() {
       const data = filterData();
 
@@ -618,7 +656,7 @@
         </tr>
       `).join("");
 
-      $("analysis").innerHTML = analysisText[$("period").value] || analysisText.all;
+      updateAIAnalysis(data);
     }
 
     initPeriodSelects();
