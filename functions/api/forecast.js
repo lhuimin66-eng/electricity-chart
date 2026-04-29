@@ -222,7 +222,7 @@ function round(value, digits) {
 
 async function createCacheKey(period, data) {
   const raw = JSON.stringify({
-    type: "forecast-v5",
+    type: "forecast-v6",
     period,
     data
   });
