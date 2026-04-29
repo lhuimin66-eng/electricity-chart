@@ -101,7 +101,9 @@ function forecastSeries(values, count, maxStepRate = 0.04, waveRate = 0.015) {
   return result;
 }
 function forecastPriceSeries(values, count) {
-  const cleanValues = values.filter(v => v !== null && v !== undefined && Number.isFinite(Number(v)));
+  const cleanValues = values
+    .map(toNumber)
+    .filter(v => v !== null && Number.isFinite(v));
 
   if (!cleanValues.length) {
     return Array(count).fill(null);
@@ -113,29 +115,30 @@ function forecastPriceSeries(values, count) {
   let trend = 0;
 
   if (cleanValues.length >= 2) {
-    const diffs = [];
+    const firstHalf = cleanValues.slice(0, Math.ceil(cleanValues.length / 2));
+    const secondHalf = cleanValues.slice(Math.floor(cleanValues.length / 2));
 
-    for (let i = 1; i < cleanValues.length; i++) {
-      diffs.push(cleanValues[i] - cleanValues[i - 1]);
-    }
-
-    trend = average(diffs);
+    trend = (average(secondHalf) - average(firstHalf)) / count;
   }
 
-  if (Math.abs(trend) < 0.08) {
-    trend = avg >= last ? 0.12 : -0.12;
+  if (Math.abs(trend) < 0.18) {
+    trend = last >= avg ? 0.22 : -0.22;
   }
 
-  trend = clamp(trend, -0.8, 0.8);
+  trend = clamp(trend, -0.7, 0.7);
 
   const result = [];
 
   for (let i = 1; i <= count; i++) {
-    const wave = Math.sin(i / 2.2) * 1.35;
-    const microWave = Math.cos(i / 1.6) * 0.55;
-    const value = last + trend * i + wave + microWave;
+    const wave = Math.sin(i * 0.9) * 1.8;
+    const smallWave = Math.cos(i * 1.35) * 0.9;
+    const dayOffset = ((i % 5) - 2) * 0.28;
 
-    result.push(clamp(value, avg - 8, avg + 8));
+    const value = last + trend * i + wave + smallWave + dayOffset;
+    const min = avg - 12;
+    const max = avg + 12;
+
+    result.push(clamp(value, min, max));
   }
 
   return result;
@@ -219,7 +222,7 @@ function round(value, digits) {
 
 async function createCacheKey(period, data) {
   const raw = JSON.stringify({
-    type: "forecast-v4",
+    type: "forecast-v5",
     period,
     data
   });
