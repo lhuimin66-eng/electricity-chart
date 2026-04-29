@@ -245,8 +245,8 @@
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
     }
 
-    /* 趋势分析时段固定悬浮在页面右侧中间 */
-    .sticky-period-control {
+    /* 右侧悬浮时段选择框 */
+    .floating-period-control {
       position: fixed;
       right: 34px;
       top: 50%;
@@ -260,12 +260,12 @@
       backdrop-filter: blur(8px);
     }
 
-    .sticky-period-control label {
+    .floating-period-control label {
       color: #334155;
       font-weight: 650;
     }
 
-    .sticky-period-control select {
+    .floating-period-control select {
       min-width: 180px;
       border-color: #bfdbfe;
     }
@@ -511,7 +511,7 @@
         border-bottom: 1px solid #e5e7eb;
       }
 
-      .sticky-period-control {
+      .floating-period-control {
         right: 18px;
       }
     }
@@ -519,6 +519,7 @@
     @media (max-width: 760px) {
       body {
         padding: 14px;
+        padding-bottom: 88px;
       }
 
       .topbar {
@@ -548,6 +549,20 @@
         min-width: 0;
       }
 
+      .floating-period-control {
+        left: 14px;
+        right: 14px;
+        top: auto;
+        bottom: 18px;
+        transform: none;
+        width: auto;
+        justify-content: space-between;
+      }
+
+      .floating-period-control select {
+        min-width: 0;
+      }
+
       .strip-grid {
         grid-template-columns: 1fr;
       }
@@ -567,21 +582,6 @@
 
       .small-chart canvas {
         height: 260px !important;
-      }
-
-      /* 手机端改成底部悬浮，避免挡住图表 */
-      .sticky-period-control {
-        left: 14px;
-        right: 14px;
-        top: auto;
-        bottom: 18px;
-        transform: none;
-        width: auto;
-        justify-content: space-between;
-      }
-
-      .sticky-period-control select {
-        min-width: 0;
       }
     }
   </style>
@@ -606,12 +606,29 @@
       </div>
     </header>
 
+    <!-- 右侧悬浮选择框 -->
+    <div class="panel-control floating-period-control">
+      <label for="periodFloat">趋势分析时段</label>
+      <select id="periodFloat">
+        <option value="all">全部数据</option>
+        <option value="1-15">1月1日—1月15日</option>
+        <option value="16-31">1月16日—1月31日</option>
+        <option value="2-15">2月1日—2月15日</option>
+        <option value="16-28">2月16日—2月28日</option>
+        <option value="3-15">3月1日—3月15日</option>
+        <option value="16-31-3">3月16日—3月31日</option>
+        <option value="1-15-4">4月1日—4月15日</option>
+        <option value="16-30-4">4月16日—4月30日</option>
+      </select>
+    </div>
+
     <main class="main-layout">
       <section class="panel hero-chart">
         <div class="panel-title">
           <h2>发电侧与用户侧成交电量总览</h2>
 
-          <div class="panel-control sticky-period-control">
+          <!-- 保留：顶部原选择框 -->
+          <div class="panel-control">
             <label for="period">趋势分析时段</label>
             <select id="period">
               <option value="all">全部数据</option>
@@ -1087,8 +1104,12 @@
       document.getElementById("priceRate").innerHTML = getRateText(currData.avgPrice, prevData?.avgPrice);
     }
 
+    function getCurrentPeriodValue() {
+      return document.getElementById("period").value;
+    }
+
     function filterData() {
-      const v = document.getElementById("period").value;
+      const v = getCurrentPeriodValue();
 
       if (v === "all") return allData;
 
@@ -1165,7 +1186,7 @@
     };
 
     function updateAnalysis() {
-      const v = document.getElementById("period").value;
+      const v = getCurrentPeriodValue();
       document.getElementById("analysis").innerHTML = analysisText[v] || analysisText.all;
     }
 
@@ -1216,7 +1237,21 @@
       updateAnalysis();
     }
 
-    document.getElementById("period").addEventListener("change", render);
+    function syncPeriod(sourceSelect, targetSelect) {
+      targetSelect.value = sourceSelect.value;
+      render();
+    }
+
+    const periodSelect = document.getElementById("period");
+    const periodFloatSelect = document.getElementById("periodFloat");
+
+    periodSelect.addEventListener("change", function () {
+      syncPeriod(periodSelect, periodFloatSelect);
+    });
+
+    periodFloatSelect.addEventListener("change", function () {
+      syncPeriod(periodFloatSelect, periodSelect);
+    });
 
     initCharts();
     loadData();
