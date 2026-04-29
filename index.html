@@ -66,6 +66,11 @@
     .rate-none{color:#64748b}
     .chart-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:18px}
     .small-chart{padding:20px}
+    .forecast-section{display:none;grid-template-columns:repeat(2,1fr);gap:18px;margin-bottom:18px}
+.forecast-section.show{display:grid}
+.forecast-panel{padding:20px}
+.forecast-panel canvas{height:280px!important}
+.forecast-summary{grid-column:1/-1;padding:14px 16px;font-size:13px;line-height:1.7;color:#334155;border:1px solid #dbeafe;border-radius:14px;background:linear-gradient(135deg,#eff6ff,#f8fafc)}
     .table-panel{padding:20px 22px;margin-bottom:18px}
     .table-wrap{overflow-x:auto;border:1px solid #e5e7eb;border-radius:14px}
     table{width:100%;font-size:14px;border-collapse:collapse;background:#fff}
@@ -76,7 +81,7 @@
     .footer-note{margin-top:14px;text-align:right;color:#94a3b8}
 
     @media (max-width:1100px){
-      .main-layout,.chart-grid{grid-template-columns:1fr}
+      .main-layout,.chart-grid,.forecast-section.show{grid-template-columns:1fr}
       .strip-grid{grid-template-columns:repeat(2,1fr)}
       .strip-item:nth-child(2){border-right:0}
       .strip-item:nth-child(1),.strip-item:nth-child(2){border-bottom:1px solid #e5e7eb}
@@ -237,7 +242,27 @@
         <canvas id="chartPrice"></canvas>
       </div>
     </section>
+<section class="forecast-section" id="forecastSection">
+  <div class="panel forecast-panel">
+    <div class="panel-title">
+      <h2>未来十五日双侧成交电量预测</h2>
+      <div class="panel-tag">AI Forecast</div>
+    </div>
+    <canvas id="chartForecastVolume"></canvas>
+  </div>
 
+  <div class="panel forecast-panel">
+    <div class="panel-title">
+      <h2>未来十五日用户侧平均电价预测</h2>
+      <div class="panel-tag">AI Forecast</div>
+    </div>
+    <canvas id="chartForecastPrice"></canvas>
+  </div>
+
+  <div class="forecast-summary" id="forecastSummary">
+    请选择最新时间段查看未来十五日预测结果。
+  </div>
+</section>
     <section class="panel table-panel">
       <div class="panel-title">
         <h2>交易明细数据</h2>
