@@ -54,9 +54,9 @@ function buildForecast(data) {
   const userValues = recent.map(i => toNumber(i["用户侧总成交量（MWh)"])).filter(v => v !== null);
   const priceValues = recent.map(i => toNumber(i["用户侧总平均价（元/MWh）"])).filter(v => v !== null);
 
-  const genForecast = forecastSeries(genValues, 15);
-  const userForecast = forecastSeries(userValues, 15);
-  const priceForecast = forecastSeries(priceValues, 15);
+ const genForecast = forecastSeries(genValues, 15, 0.04, 0.015);
+const userForecast = forecastSeries(userValues, 15, 0.04, 0.015);
+const priceForecast = forecastSeries(priceValues, 15, 0.015, 0.006);
 
   return dates.map((date, index) => ({
     date,
@@ -66,7 +66,7 @@ function buildForecast(data) {
   }));
 }
 
-function forecastSeries(values, count) {
+function forecastSeries(values, count, maxStepRate = 0.04, waveRate = 0.015) {
   if (!values.length) return Array(count).fill(null);
 
   const avg = average(values);
@@ -79,23 +79,27 @@ function forecastSeries(values, count) {
 
   let trend = diffs.length ? average(diffs) : 0;
 
-  const maxStep = Math.abs(avg) * 0.04;
+  if (Math.abs(trend) < Math.abs(avg) * 0.0008) {
+    trend = avg * 0.001;
+  }
+
+  const maxStep = Math.abs(avg) * maxStepRate;
   trend = clamp(trend, -maxStep, maxStep);
 
   const result = [];
 
   for (let i = 1; i <= count; i++) {
-    const seasonalWave = Math.sin(i / 2.8) * Math.abs(avg) * 0.015;
-    const value = last + trend * i + seasonalWave;
-    const min = avg * 0.85;
-    const max = avg * 1.15;
+    const seasonalWave = Math.sin(i / 2.8) * Math.abs(avg) * waveRate;
+    const microWave = Math.cos(i / 1.9) * Math.abs(avg) * waveRate * 0.45;
+    const value = last + trend * i + seasonalWave + microWave;
+    const min = avg * 0.92;
+    const max = avg * 1.08;
 
     result.push(clamp(value, min, max));
   }
 
   return result;
 }
-
 async function buildSummary(env, period, data, forecast) {
   try {
     if (!env.AI) {
@@ -175,7 +179,7 @@ function round(value, digits) {
 
 async function createCacheKey(period, data) {
   const raw = JSON.stringify({
-    type: "forecast-v2",
+    type: "forecast-v3",
     period,
     data
   });
