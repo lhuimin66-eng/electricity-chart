@@ -5,584 +5,98 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>皓朗-电力市场交易数据分析平台</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
-    }
-
-    body {
-      min-height: 100vh;
-      background:
-        radial-gradient(circle at 10% 0%, rgba(37, 99, 235, 0.16), transparent 28%),
-        radial-gradient(circle at 95% 5%, rgba(14, 165, 233, 0.13), transparent 24%),
-        linear-gradient(135deg, #f5f8fd 0%, #eef4fb 48%, #f8fafc 100%);
-      color: #0f172a;
-      padding: 22px;
-    }
-
-    .page {
-      max-width: 1320px;
-      margin: 0 auto;
-    }
-
-    .topbar {
-      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 58%, #0369a1 100%);
-      border-radius: 18px;
-      padding: 26px 30px 28px;
-      color: #ffffff;
-      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.2);
-      position: relative;
-      overflow: hidden;
-      margin-bottom: 22px;
-    }
-
-    .topbar::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
-      background-size: 34px 34px;
-      opacity: 0.6;
-    }
-
-    .topbar::after {
-      content: "";
-      position: absolute;
-      right: -80px;
-      top: -100px;
-      width: 300px;
-      height: 300px;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.22), transparent 68%);
-    }
-
-    .topbar-content {
-      position: relative;
-      z-index: 2;
-    }
-
-    .title-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 18px;
-      flex-wrap: wrap;
-      margin-bottom: 22px;
-    }
-
-    h1 {
-      font-size: 28px;
-      font-weight: 750;
-      letter-spacing: 0.6px;
-      margin-bottom: 7px;
-    }
-
-    .subtitle {
-      font-size: 13px;
-      color: rgba(226, 232, 240, 0.92);
-    }
-
-    .status {
-      font-size: 13px;
-      color: #e0f2fe;
-      background: rgba(255, 255, 255, 0.13);
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      border-radius: 999px;
-      padding: 8px 15px;
-      backdrop-filter: blur(8px);
-      white-space: nowrap;
-    }
-
-    .top-analysis {
-      position: relative;
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 16px;
-      padding: 18px 20px;
-      backdrop-filter: blur(10px);
-      overflow: hidden;
-    }
-
-    .top-analysis::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 4px;
-      height: 100%;
-      background: linear-gradient(180deg, #67e8f9, #60a5fa);
-    }
-
-    .top-analysis::after {
-      content: "AI ANALYSIS";
-      position: absolute;
-      right: 20px;
-      top: 18px;
-      font-size: 11px;
-      letter-spacing: 1.7px;
-      color: rgba(191, 219, 254, 0.9);
-      font-weight: 800;
-    }
-
-    .top-analysis h3 {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      color: #ffffff;
-      padding-right: 120px;
-    }
-
-    .top-analysis p {
-      font-size: 14px;
-      color: rgba(226, 232, 240, 0.95);
-      line-height: 1.7;
-      margin: 3px 0;
-      max-width: 1020px;
-    }
-
-    .main-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1.65fr) minmax(330px, 0.85fr);
-      gap: 18px;
-      align-items: stretch;
-      margin-bottom: 18px;
-    }
-
-    .panel {
-      background: rgba(255, 255, 255, 0.94);
-      border: 1px solid rgba(226, 232, 240, 0.95);
-      border-radius: 18px;
-      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .panel::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0;
-      height: 3px;
-      width: 100%;
-      background: linear-gradient(90deg, #1d4ed8, #06b6d4, transparent);
-    }
-
-    .hero-chart {
-      padding: 22px;
-      min-height: 460px;
-    }
-
-    .panel-title {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 18px;
-      flex-wrap: wrap;
-    }
-
-    .panel-title h2 {
-      font-size: 17px;
-      font-weight: 750;
-      color: #0f172a;
-      display: flex;
-      align-items: center;
-      gap: 9px;
-    }
-
-    .panel-title h2::before {
-      content: "";
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: #2563eb;
-      box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.12);
-    }
-
-    .panel-tag {
-      font-size: 12px;
-      color: #64748b;
-      background: #f1f5f9;
-      border: 1px solid #e2e8f0;
-      border-radius: 999px;
-      padding: 5px 10px;
-      white-space: nowrap;
-    }
-
-    .panel-control {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      white-space: nowrap;
-    }
-
-    .panel-control label {
-      font-size: 13px;
-      color: #64748b;
-    }
-
-    .panel-control select,
-    .panel-control input {
-      height: 34px;
-      min-width: 150px;
-      border-radius: 9px;
-      border: 1px solid #cbd5e1;
-      background: #ffffff;
-      color: #0f172a;
-      padding: 0 10px;
-      font-size: 13px;
-      outline: none;
-    }
-
-    .panel-control select:focus,
-    .panel-control input:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-    }
-
-    /* 右侧悬浮时段选择框 */
-    .floating-period-control {
-      position: fixed;
-      right: 34px;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 999;
-      background: rgba(255, 255, 255, 0.96);
-      border: 1px solid #dbeafe;
-      border-radius: 14px;
-      padding: 12px 14px;
-      box-shadow: 0 14px 32px rgba(15, 23, 42, 0.16);
-      backdrop-filter: blur(8px);
-    }
-
-    .floating-period-control label {
-      color: #334155;
-      font-weight: 650;
-    }
-
-    .floating-period-control select {
-      min-width: 180px;
-      border-color: #bfdbfe;
-    }
-
-    canvas {
-      width: 100% !important;
-      height: 360px !important;
-    }
-
-    .side-overview {
-      padding: 22px;
-      display: flex;
-      flex-direction: column;
-      min-height: 460px;
-    }
-
-    .overview-date {
-      font-size: 13px;
-      color: #64748b;
-      margin-bottom: 18px;
-      padding-bottom: 14px;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    .metric-list {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-      flex: 1;
-    }
-
-    .metric-row {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 6px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid #eef2f7;
-    }
-
-    .metric-row:last-child {
-      border-bottom: none;
-    }
-
-    .metric-name {
-      font-size: 13px;
-      color: #64748b;
-    }
-
-    .metric-value {
-      font-size: 28px;
-      font-weight: 760;
-      color: #0f172a;
-      line-height: 1.2;
-      word-break: break-all;
-      letter-spacing: -0.4px;
-    }
-
-    .metric-unit {
-      font-size: 12px;
-      color: #94a3b8;
-    }
-
-    .overview-footer {
-      margin-top: 18px;
-      background: linear-gradient(135deg, #eff6ff, #f8fafc);
-      border: 1px solid #dbeafe;
-      border-radius: 14px;
-      padding: 14px;
-      font-size: 13px;
-      color: #334155;
-      line-height: 1.65;
-    }
-
-    .month-strip {
-      background: rgba(255, 255, 255, 0.94);
-      border: 1px solid rgba(226, 232, 240, 0.95);
-      border-radius: 18px;
-      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.05);
-      padding: 18px 22px;
-      margin-bottom: 18px;
-    }
-
-    .strip-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
-
-    .strip-header h2 {
-      font-size: 17px;
-      font-weight: 750;
-      color: #0f172a;
-      margin-bottom: 4px;
-    }
-
-    .strip-header span {
-      font-size: 12px;
-      color: #64748b;
-    }
-
-    .strip-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 0;
-      border-radius: 14px;
-      overflow: hidden;
-      border: 1px solid #e5e7eb;
-    }
-
-    .strip-item {
-      background: linear-gradient(180deg, #ffffff, #f8fafc);
-      padding: 16px 18px;
-      border-right: 1px solid #e5e7eb;
-    }
-
-    .strip-item:last-child {
-      border-right: none;
-    }
-
-    .strip-label {
-      font-size: 13px;
-      color: #64748b;
-      margin-bottom: 8px;
-    }
-
-    .strip-value {
-      font-size: 23px;
-      font-weight: 750;
-      color: #0f172a;
-      line-height: 1.2;
-    }
-
-    .strip-unit {
-      font-size: 12px;
-      color: #94a3b8;
-      margin-top: 5px;
-    }
-
-    .rate-up {
-      font-size: 13px;
-      color: #b91c1c;
-      font-weight: 650;
-      margin-top: 8px;
-    }
-
-    .rate-down {
-      font-size: 13px;
-      color: #047857;
-      font-weight: 650;
-      margin-top: 8px;
-    }
-
-    .rate-none {
-      font-size: 13px;
-      color: #64748b;
-      margin-top: 8px;
-    }
-
-    .chart-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 18px;
-      margin-bottom: 18px;
-    }
-
-    .small-chart {
-      padding: 20px;
-    }
-
-    .small-chart canvas {
-      height: 255px !important;
-    }
-
-    .table-panel {
-      padding: 20px 22px;
-      margin-bottom: 18px;
-    }
-
-    .table-wrap {
-      overflow-x: auto;
-      border-radius: 14px;
-      border: 1px solid #e5e7eb;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-      background: #ffffff;
-    }
-
-    th,
-    td {
-      padding: 12px 10px;
-      text-align: center;
-      border-bottom: 1px solid #e5e7eb;
-      white-space: nowrap;
-    }
-
-    th {
-      background: linear-gradient(180deg, #f8fafc, #eef4fb);
-      color: #334155;
-      font-weight: 700;
-    }
-
-    td {
-      color: #334155;
-    }
-
-    tr:hover td {
-      background: #eff6ff;
-    }
-
-    .footer-note {
-      margin-top: 14px;
-      font-size: 12px;
-      color: #94a3b8;
-      text-align: right;
-    }
-
-    @media (max-width: 1100px) {
-      .main-layout {
-        grid-template-columns: 1fr;
-      }
-
-      .chart-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .strip-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .strip-item:nth-child(2) {
-        border-right: none;
-      }
-
-      .strip-item:nth-child(1),
-      .strip-item:nth-child(2) {
-        border-bottom: 1px solid #e5e7eb;
-      }
-
-      .floating-period-control {
-        right: 18px;
-      }
-    }
-
-    @media (max-width: 760px) {
-      body {
-        padding: 14px;
-        padding-bottom: 88px;
-      }
-
-      .topbar {
-        padding: 22px;
-      }
-
-      h1 {
-        font-size: 23px;
-      }
-
-      .top-analysis h3 {
-        padding-right: 0;
-      }
-
-      .top-analysis::after {
-        display: none;
-      }
-
-      .panel-control {
-        width: 100%;
-        justify-content: space-between;
-      }
-
-      .panel-control select,
-      .panel-control input {
-        flex: 1;
-        min-width: 0;
-      }
-
-      .floating-period-control {
-        left: 14px;
-        right: 14px;
-        top: auto;
-        bottom: 18px;
-        transform: none;
-        width: auto;
-        justify-content: space-between;
-      }
-
-      .floating-period-control select {
-        min-width: 0;
-      }
-
-      .strip-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .strip-item {
-        border-right: none;
-        border-bottom: 1px solid #e5e7eb;
-      }
-
-      .strip-item:last-child {
-        border-bottom: none;
-      }
-
-      canvas {
-        height: 300px !important;
-      }
-
-      .small-chart canvas {
-        height: 260px !important;
-      }
+    *{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei","PingFang SC",Arial,sans-serif}
+    body{min-height:100vh;padding:22px;color:#0f172a;background:radial-gradient(circle at 10% 0%,rgba(37,99,235,.16),transparent 28%),radial-gradient(circle at 95% 5%,rgba(14,165,233,.13),transparent 24%),linear-gradient(135deg,#f5f8fd 0%,#eef4fb 48%,#f8fafc 100%)}
+    .page{max-width:1320px;margin:0 auto}
+    .topbar{position:relative;overflow:hidden;margin-bottom:22px;padding:26px 30px 28px;color:#fff;border-radius:18px;background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 58%,#0369a1 100%);box-shadow:0 18px 45px rgba(15,23,42,.2)}
+    .topbar::before{content:"";position:absolute;inset:0;opacity:.6;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:34px 34px}
+    .topbar::after{content:"";position:absolute;right:-80px;top:-100px;width:300px;height:300px;background:radial-gradient(circle,rgba(255,255,255,.22),transparent 68%)}
+    .topbar-content{position:relative;z-index:2}
+    .title-row{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;margin-bottom:22px}
+    h1{margin-bottom:7px;font-size:28px;font-weight:750;letter-spacing:.6px}
+    .subtitle{font-size:13px;color:rgba(226,232,240,.92)}
+    .status{padding:8px 15px;font-size:13px;color:#e0f2fe;white-space:nowrap;border:1px solid rgba(255,255,255,.22);border-radius:999px;background:rgba(255,255,255,.13);backdrop-filter:blur(8px)}
+    .top-analysis{position:relative;overflow:hidden;padding:18px 20px;border:1px solid rgba(255,255,255,.2);border-radius:16px;background:rgba(255,255,255,.12);backdrop-filter:blur(10px)}
+    .top-analysis::before{content:"";position:absolute;left:0;top:0;width:4px;height:100%;background:linear-gradient(180deg,#67e8f9,#60a5fa)}
+    .top-analysis::after{content:"AI ANALYSIS";position:absolute;right:20px;top:18px;font-size:11px;font-weight:800;letter-spacing:1.7px;color:rgba(191,219,254,.9)}
+    .top-analysis h3{padding-right:120px;margin-bottom:8px;font-size:16px;font-weight:700;color:#fff}
+    .top-analysis p{max-width:1020px;margin:3px 0;font-size:14px;line-height:1.7;color:rgba(226,232,240,.95)}
+    .main-layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(330px,.85fr);gap:18px;align-items:stretch;margin-bottom:18px}
+    .panel,.month-strip{position:relative;border:1px solid rgba(226,232,240,.95);border-radius:18px;background:rgba(255,255,255,.94);box-shadow:0 12px 32px rgba(15,23,42,.06)}
+    .panel{overflow:hidden}
+    .panel::before{content:"";position:absolute;left:0;top:0;width:100%;height:3px;background:linear-gradient(90deg,#1d4ed8,#06b6d4,transparent)}
+    .hero-chart,.side-overview{min-height:460px;padding:22px}
+    .side-overview{display:flex;flex-direction:column}
+    .panel-title,.strip-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+    .panel-title h2,.strip-header h2{font-size:17px;font-weight:750;color:#0f172a}
+    .panel-title h2{display:flex;align-items:center;gap:9px}
+    .panel-title h2::before{content:"";width:9px;height:9px;border-radius:50%;background:#2563eb;box-shadow:0 0 0 6px rgba(37,99,235,.12)}
+    .panel-tag{padding:5px 10px;font-size:12px;color:#64748b;white-space:nowrap;border:1px solid #e2e8f0;border-radius:999px;background:#f1f5f9}
+    .panel-control{display:flex;align-items:center;gap:8px;white-space:nowrap}
+    .panel-control label{font-size:13px;color:#64748b}
+    .panel-control select,.panel-control input{height:34px;min-width:150px;padding:0 10px;font-size:13px;color:#0f172a;outline:0;border:1px solid #cbd5e1;border-radius:9px;background:#fff}
+    .panel-control select:focus,.panel-control input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+    .floating-period-control{position:fixed;right:34px;top:50%;transform:translateY(-50%);z-index:999;padding:12px 14px;border:1px solid #dbeafe;border-radius:14px;background:rgba(255,255,255,.96);box-shadow:0 14px 32px rgba(15,23,42,.16);backdrop-filter:blur(8px)}
+    .floating-period-control label{font-weight:650;color:#334155}
+    .floating-period-control select{min-width:180px;border-color:#bfdbfe}
+    canvas{width:100%!important;height:360px!important}
+    .small-chart canvas{height:255px!important}
+    .overview-date{padding-bottom:14px;margin-bottom:18px;font-size:13px;color:#64748b;border-bottom:1px solid #e5e7eb}
+    .metric-list{display:flex;flex:1;flex-direction:column;gap:18px}
+    .metric-row{display:grid;gap:6px;padding-bottom:16px;border-bottom:1px solid #eef2f7}
+    .metric-row:last-child{border-bottom:0}
+    .metric-name{font-size:13px;color:#64748b}
+    .metric-value{font-size:28px;font-weight:760;line-height:1.2;letter-spacing:-.4px;word-break:break-all}
+    .metric-unit{font-size:12px;color:#94a3b8}
+    .overview-footer{margin-top:18px;padding:14px;font-size:13px;line-height:1.65;color:#334155;border:1px solid #dbeafe;border-radius:14px;background:linear-gradient(135deg,#eff6ff,#f8fafc)}
+    .month-strip{padding:18px 22px;margin-bottom:18px}
+    .strip-header{margin-bottom:16px}
+    .strip-header h2{margin-bottom:4px}
+    .strip-header span,.footer-note{font-size:12px;color:#64748b}
+    .strip-grid{display:grid;grid-template-columns:repeat(4,1fr);overflow:hidden;border:1px solid #e5e7eb;border-radius:14px}
+    .strip-item{padding:16px 18px;border-right:1px solid #e5e7eb;background:linear-gradient(180deg,#fff,#f8fafc)}
+    .strip-item:last-child{border-right:0}
+    .strip-label{margin-bottom:8px;font-size:13px;color:#64748b}
+    .strip-value{font-size:23px;font-weight:750;line-height:1.2}
+    .strip-unit{margin-top:5px;font-size:12px;color:#94a3b8}
+    .rate-up,.rate-down,.rate-none{margin-top:8px;font-size:13px}
+    .rate-up{font-weight:650;color:#b91c1c}
+    .rate-down{font-weight:650;color:#047857}
+    .rate-none{color:#64748b}
+    .chart-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:18px}
+    .small-chart{padding:20px}
+    .table-panel{padding:20px 22px;margin-bottom:18px}
+    .table-wrap{overflow-x:auto;border:1px solid #e5e7eb;border-radius:14px}
+    table{width:100%;font-size:14px;border-collapse:collapse;background:#fff}
+    th,td{padding:12px 10px;text-align:center;white-space:nowrap;border-bottom:1px solid #e5e7eb}
+    th{font-weight:700;color:#334155;background:linear-gradient(180deg,#f8fafc,#eef4fb)}
+    td{color:#334155}
+    tr:hover td{background:#eff6ff}
+    .footer-note{margin-top:14px;text-align:right;color:#94a3b8}
+
+    @media (max-width:1100px){
+      .main-layout,.chart-grid{grid-template-columns:1fr}
+      .strip-grid{grid-template-columns:repeat(2,1fr)}
+      .strip-item:nth-child(2){border-right:0}
+      .strip-item:nth-child(1),.strip-item:nth-child(2){border-bottom:1px solid #e5e7eb}
+      .floating-period-control{right:18px}
+    }
+
+    @media (max-width:760px){
+      body{padding:14px 14px 88px}
+      .topbar{padding:22px}
+      h1{font-size:23px}
+      .top-analysis h3{padding-right:0}
+      .top-analysis::after{display:none}
+      .panel-control{width:100%;justify-content:space-between}
+      .panel-control select,.panel-control input{flex:1;min-width:0}
+      .floating-period-control{left:14px;right:14px;top:auto;bottom:18px;transform:none;width:auto}
+      .strip-grid{grid-template-columns:1fr}
+      .strip-item{border-right:0;border-bottom:1px solid #e5e7eb}
+      .strip-item:last-child{border-bottom:0}
+      canvas{height:300px!important}
+      .small-chart canvas{height:260px!important}
     }
   </style>
 </head>
@@ -606,54 +120,29 @@
       </div>
     </header>
 
-    <!-- 右侧悬浮选择框 -->
     <div class="panel-control floating-period-control">
       <label for="periodFloat">趋势分析时段</label>
-      <select id="periodFloat">
-        <option value="all">全部数据</option>
-        <option value="1-15">1月1日—1月15日</option>
-        <option value="16-31">1月16日—1月31日</option>
-        <option value="2-15">2月1日—2月15日</option>
-        <option value="16-28">2月16日—2月28日</option>
-        <option value="3-15">3月1日—3月15日</option>
-        <option value="16-31-3">3月16日—3月31日</option>
-        <option value="1-15-4">4月1日—4月15日</option>
-        <option value="16-30-4">4月16日—4月30日</option>
-      </select>
+      <select id="periodFloat"></select>
     </div>
 
     <main class="main-layout">
       <section class="panel hero-chart">
         <div class="panel-title">
           <h2>发电侧与用户侧成交电量总览</h2>
-
-          <!-- 保留：顶部原选择框 -->
           <div class="panel-control">
             <label for="period">趋势分析时段</label>
-            <select id="period">
-              <option value="all">全部数据</option>
-              <option value="1-15">1月1日—1月15日</option>
-              <option value="16-31">1月16日—1月31日</option>
-              <option value="2-15">2月1日—2月15日</option>
-              <option value="16-28">2月16日—2月28日</option>
-              <option value="3-15">3月1日—3月15日</option>
-              <option value="16-31-3">3月16日—3月31日</option>
-              <option value="1-15-4">4月1日—4月15日</option>
-              <option value="16-30-4">4月16日—4月30日</option>
-            </select>
+            <select id="period"></select>
           </div>
         </div>
-
         <canvas id="chartCompare"></canvas>
       </section>
 
       <aside class="panel side-overview">
         <div class="panel-title">
           <h2>最新交易概览</h2>
-
           <div class="panel-control">
             <label for="selectDate">查询日期</label>
-            <input type="date" id="selectDate" onchange="selectByDate()" />
+            <input type="date" id="selectDate" />
           </div>
         </div>
 
@@ -665,13 +154,11 @@
             <div class="metric-value" id="lastGen">-</div>
             <div class="metric-unit">单位：MWh</div>
           </div>
-
           <div class="metric-row">
             <div class="metric-name">用户侧成交电量</div>
             <div class="metric-value" id="lastUse">-</div>
             <div class="metric-unit">单位：MWh</div>
           </div>
-
           <div class="metric-row">
             <div class="metric-name">用户侧平均电价</div>
             <div class="metric-value" id="lastPrice">-</div>
@@ -679,7 +166,7 @@
           </div>
         </div>
 
-        <div class="overview-footer" id="overviewTip">
+        <div class="overview-footer">
           当前面板展示所选日期下的发电侧成交电量、用户侧成交电量及用户侧平均电价，用于观察单日市场交易概况。
         </div>
       </aside>
@@ -694,7 +181,7 @@
 
         <div class="panel-control">
           <label for="monthSelectInline">切换月份</label>
-          <select id="monthSelectInline" onchange="changeMonth()">
+          <select id="monthSelectInline">
             <option value="1">2026年1月</option>
             <option value="2">2026年2月</option>
             <option value="3">2026年3月</option>
@@ -736,23 +223,17 @@
 
     <section class="chart-grid">
       <div class="panel small-chart">
-        <div class="panel-title">
-          <h2>发电侧成交趋势</h2>
-        </div>
+        <div class="panel-title"><h2>发电侧成交趋势</h2></div>
         <canvas id="chartGen"></canvas>
       </div>
 
       <div class="panel small-chart">
-        <div class="panel-title">
-          <h2>用户侧成交趋势</h2>
-        </div>
+        <div class="panel-title"><h2>用户侧成交趋势</h2></div>
         <canvas id="chartUser"></canvas>
       </div>
 
       <div class="panel small-chart">
-        <div class="panel-title">
-          <h2>用户侧电价趋势</h2>
-        </div>
+        <div class="panel-title"><h2>用户侧电价趋势</h2></div>
         <canvas id="chartPrice"></canvas>
       </div>
     </section>
@@ -782,226 +263,229 @@
   </div>
 
   <script>
+    const $ = id => document.getElementById(id);
+
+    const PERIODS = [
+      ["all","全部数据"],
+      ["1-15","1月1日—1月15日"],
+      ["16-31","1月16日—1月31日"],
+      ["2-15","2月1日—2月15日"],
+      ["16-28","2月16日—2月28日"],
+      ["3-15","3月1日—3月15日"],
+      ["16-31-3","3月16日—3月31日"],
+      ["1-15-4","4月1日—4月15日"],
+      ["16-30-4","4月16日—4月30日"]
+    ];
+
+    const PERIOD_RANGES = {
+      "1-15":[1,1,15],
+      "16-31":[1,16,31],
+      "2-15":[2,1,15],
+      "16-28":[2,16,28],
+      "3-15":[3,1,15],
+      "16-31-3":[3,16,31],
+      "1-15-4":[4,1,15],
+      "16-30-4":[4,16,30]
+    };
+
+    const analysisText = {
+      all:`<h3>全周期运行特征分析</h3><p>从整体趋势看，1月至2月受春节假期影响，用户侧成交电量出现阶段性回落；3月以后随着复工复产推进，成交电量逐步恢复并呈现上升趋势。</p><p>用户侧平均电价整体与负荷变化保持较高一致性，说明市场价格对用电需求变化具有一定响应特征。</p>`,
+      "1-15":`<h3>1月1日—1月15日运行特征分析</h3><p>该阶段用户侧成交电量整体保持在相对高位，说明节前工业生产和社会用电需求仍处于较稳定状态。</p><p>从价格表现看，用户侧平均电价维持较高水平，反映出冬季用电需求及供需关系对市场价格形成了一定支撑。</p>`,
+      "16-31":`<h3>1月16日—1月31日运行特征分析</h3><p>随着春节临近，部分企业陆续进入停工或减产阶段，用户侧成交电量出现一定回落。</p><p>该阶段电价波动有所增强，市场供需关系由前期偏紧逐步转向相对宽松。</p>`,
+      "2-15":`<h3>2月1日—2月15日运行特征分析</h3><p>该阶段处于春节假期影响较明显的时间窗口，工业生产活动减弱，用户侧成交电量明显下降。</p><p>受用电需求回落影响，用户侧平均电价整体处于较低水平，市场供需宽松特征较为明显。</p>`,
+      "16-28":`<h3>2月16日—2月28日运行特征分析</h3><p>春节假期后，企业复工复产逐步推进，用户侧成交电量呈现恢复性增长。</p><p>随着负荷水平回升，用户侧平均电价同步出现上行趋势，市场逐渐回归常态运行区间。</p>`,
+      "3-15":`<h3>3月1日—3月15日运行特征分析</h3><p>进入3月后，工业生产和社会用电需求进一步恢复，成交电量整体保持上升态势。</p><p>价格走势与成交电量变化具有一定同步性，说明市场价格对需求侧变化具有较明显响应。</p>`,
+      "16-31-3":`<h3>3月16日—3月31日运行特征分析</h3><p>该阶段用户侧成交电量继续增长，反映出复工复产后的用电需求进一步释放。</p><p>电价水平整体抬升，说明随着成交电量增加，市场供需关系有所收紧。</p>`,
+      "1-15-4":`<h3>4月1日—4月15日运行特征分析</h3><p>4月上半月成交电量延续增长趋势，用户侧用电需求维持较高水平。</p><p>从价格变化看，平均电价保持在相对高位，表明市场需求对价格仍具有较强支撑作用。</p>`,
+      "16-30-4":`<h3>4月16日—4月30日运行特征分析</h3><p>该阶段用电负荷整体保持高位，发电侧与用户侧成交电量之间的变化关系仍需结合后续数据进一步观察。</p><p>由于部分日期数据可能尚未完整更新，电价趋势分析应以最终发布数据为准。</p>`
+    };
+
     let allData = [];
     let charts = {};
 
     function formatNumber(value, digits = 2) {
       const num = Number(value);
-      if (!Number.isFinite(num)) return "-";
-      return num.toLocaleString(undefined, {
-        minimumFractionDigits: digits,
-        maximumFractionDigits: digits
+      return Number.isFinite(num)
+        ? num.toLocaleString(undefined,{minimumFractionDigits:digits,maximumFractionDigits:digits})
+        : "-";
+    }
+
+    function initPeriodSelects() {
+      const html = PERIODS.map(([v,t]) => `<option value="${v}">${t}</option>`).join("");
+      $("period").innerHTML = html;
+      $("periodFloat").innerHTML = html;
+
+      [$("period"), $("periodFloat")].forEach(select => {
+        select.addEventListener("change", () => {
+          $("period").value = select.value;
+          $("periodFloat").value = select.value;
+          render();
+        });
       });
     }
 
     function setLatestCards(item) {
       if (!item) return;
 
-      const gen = item["发电侧总成交量（MWh）"];
-      const user = item["用户侧总成交量（MWh)"];
+      $("lastGen").innerText = formatNumber(item["发电侧总成交量（MWh）"],3);
+      $("lastUse").innerText = formatNumber(item["用户侧总成交量（MWh)"],3);
+
       const price = item["用户侧总平均价（元/MWh）"];
-
-      document.getElementById("lastGen").innerText = formatNumber(gen, 3);
-      document.getElementById("lastUse").innerText = formatNumber(user, 3);
-      document.getElementById("lastPrice").innerText = price == null ? "暂无数据" : formatNumber(price, 2);
-
-      document.getElementById("overviewDate").innerText = "统计日期：" + item.日期;
+      $("lastPrice").innerText = price == null ? "暂无数据" : formatNumber(price,2);
+      $("overviewDate").innerText = "统计日期：" + item.日期;
     }
 
     function selectByDate() {
-      const dateStr = document.getElementById("selectDate").value;
+      const dateStr = $("selectDate").value;
       if (!dateStr || !allData.length) return;
 
-      const parts = dateStr.split("-");
-      const m = parseInt(parts[1]);
-      const d = parseInt(parts[2]);
-      const target = `${m}.${d}`;
-
-      const item = allData.find(i => i.日期 === target);
+      const [,m,d] = dateStr.split("-").map(Number);
+      const item = allData.find(i => i.日期 === `${m}.${d}`);
 
       if (!item) {
-        document.getElementById("status").innerText = "数据状态：当前日期暂无数据";
+        $("status").innerText = "数据状态：当前日期暂无数据";
         return;
       }
 
       setLatestCards(item);
-      document.getElementById("status").innerText = "数据状态：已切换至 " + item.日期;
+      $("status").innerText = "数据状态：已切换至 " + item.日期;
     }
 
-    function changeMonth() {
-      calcMonthAvg();
-    }
-
-    function initCharts() {
-      const ctxCompare = document.getElementById("chartCompare").getContext("2d");
-      const ctxGen = document.getElementById("chartGen").getContext("2d");
-      const ctxUser = document.getElementById("chartUser").getContext("2d");
-      const ctxPrice = document.getElementById("chartPrice").getContext("2d");
-
-      function createGradient(ctx, color) {
-        const gradient = ctx.createLinearGradient(0, 0, 0, 360);
-        gradient.addColorStop(0, color);
-        gradient.addColorStop(1, "rgba(255,255,255,0)");
-        return gradient;
-      }
-
-      const compareBlueGradient = createGradient(ctxCompare, "rgba(37, 99, 235, 0.20)");
-      const compareSlateGradient = createGradient(ctxCompare, "rgba(14, 165, 233, 0.14)");
-      const blueGradient = createGradient(ctxGen, "rgba(37, 99, 235, 0.22)");
-      const tealGradient = createGradient(ctxUser, "rgba(20, 184, 166, 0.20)");
-      const orangeGradient = createGradient(ctxPrice, "rgba(245, 158, 11, 0.22)");
-
-      const baseOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: {
-          mode: "index",
-          intersect: false
-        },
-        plugins: {
-          legend: {
-            labels: {
-              color: "#334155",
-              boxWidth: 12,
-              boxHeight: 12,
-              font: {
-                size: 12
-              }
+    function baseChartOptions() {
+      return {
+        responsive:true,
+        maintainAspectRatio:false,
+        interaction:{mode:"index",intersect:false},
+        plugins:{
+          legend:{
+            labels:{
+              color:"#334155",
+              boxWidth:12,
+              boxHeight:12,
+              font:{size:12}
             }
           },
-          tooltip: {
-            mode: "index",
-            intersect: false,
-            backgroundColor: "rgba(15, 23, 42, 0.92)",
-            titleColor: "#ffffff",
-            bodyColor: "#ffffff",
-            padding: 11,
-            cornerRadius: 8,
-            callbacks: {
-              label: ctx => {
-                const value = ctx.raw == null ? "暂无数据" : Number(ctx.raw).toLocaleString();
-                return ctx.dataset.label + "：" + value;
-              }
+          tooltip:{
+            mode:"index",
+            intersect:false,
+            backgroundColor:"rgba(255,255,255,.88)",
+            borderColor:"rgba(37,99,235,.25)",
+            borderWidth:1,
+            titleColor:"#0f172a",
+            bodyColor:"#334155",
+            padding:12,
+            cornerRadius:10,
+            boxWidth:10,
+            boxHeight:10,
+            boxPadding:5,
+            titleFont:{
+              family:'"Microsoft YaHei","PingFang SC",Arial,sans-serif',
+              size:13,
+              weight:"700",
+              lineHeight:1.4
+            },
+            bodyFont:{
+              family:'"Microsoft YaHei","PingFang SC",Arial,sans-serif',
+              size:13,
+              weight:"500",
+              lineHeight:1.5
+            },
+            callbacks:{
+              label:ctx => `${ctx.dataset.label}：${ctx.raw == null ? "暂无数据" : Number(ctx.raw).toLocaleString()}`
             }
           }
         },
-        scales: {
-          x: {
-            grid: {
-              display: false
-            },
-            ticks: {
-              color: "#64748b",
-              maxRotation: 0,
-              autoSkip: true,
-              maxTicksLimit: 10
+        scales:{
+          x:{
+            grid:{display:false},
+            ticks:{
+              color:"#64748b",
+              maxRotation:0,
+              autoSkip:true,
+              maxTicksLimit:10
             }
           },
-          y: {
-            grid: {
-              color: "#eef2f7"
-            },
-            ticks: {
-              color: "#64748b"
-            }
+          y:{
+            grid:{color:"#eef2f7"},
+            ticks:{color:"#64748b"}
           }
         }
       };
+    }
 
-      charts.compare = new Chart(ctxCompare, {
-        type: "line",
-        data: {
-          labels: [],
-          datasets: [
-            {
-              label: "发电侧成交电量（MWh）",
-              data: [],
-              borderColor: "#1d4ed8",
-              backgroundColor: compareBlueGradient,
-              borderWidth: 2.4,
-              pointRadius: 0,
-              pointHoverRadius: 5,
-              tension: 0.36,
-              fill: true
-            },
-            {
-              label: "用户侧成交电量（MWh）",
-              data: [],
-              borderColor: "#0891b2",
-              backgroundColor: compareSlateGradient,
-              borderWidth: 2.4,
-              pointRadius: 0,
-              pointHoverRadius: 5,
-              tension: 0.36,
-              fill: true
-            }
+    function gradient(ctx, color) {
+      const g = ctx.createLinearGradient(0,0,0,360);
+      g.addColorStop(0,color);
+      g.addColorStop(1,"rgba(255,255,255,0)");
+      return g;
+    }
+
+    function dataset(label, color, bg, extra = {}) {
+      return {
+        label,
+        data:[],
+        borderColor:color,
+        backgroundColor:bg,
+        borderWidth:2.2,
+        pointRadius:0,
+        pointHoverRadius:5,
+        tension:.36,
+        fill:true,
+        ...extra
+      };
+    }
+
+    function initCharts() {
+      const c = id => $(id).getContext("2d");
+
+      const ctxCompare = c("chartCompare");
+      const ctxGen = c("chartGen");
+      const ctxUser = c("chartUser");
+      const ctxPrice = c("chartPrice");
+
+      charts.compare = new Chart(ctxCompare,{
+        type:"line",
+        data:{
+          labels:[],
+          datasets:[
+            dataset("发电侧成交电量（MWh）","#1d4ed8",gradient(ctxCompare,"rgba(37,99,235,.20)"),{borderWidth:2.4}),
+            dataset("用户侧成交电量（MWh）","#0891b2",gradient(ctxCompare,"rgba(14,165,233,.14)"),{borderWidth:2.4})
           ]
         },
-        options: baseOptions
+        options:baseChartOptions()
       });
 
-      charts.gen = new Chart(ctxGen, {
-        type: "line",
-        data: {
-          labels: [],
-          datasets: [
-            {
-              label: "发电侧成交电量（MWh）",
-              data: [],
-              borderColor: "#1d4ed8",
-              backgroundColor: blueGradient,
-              borderWidth: 2.2,
-              pointRadius: 0,
-              pointHoverRadius: 5,
-              tension: 0.36,
-              fill: true
-            }
+      charts.gen = new Chart(ctxGen,{
+        type:"line",
+        data:{
+          labels:[],
+          datasets:[
+            dataset("发电侧成交电量（MWh）","#1d4ed8",gradient(ctxGen,"rgba(37,99,235,.22)"))
           ]
         },
-        options: baseOptions
+        options:baseChartOptions()
       });
 
-      charts.user = new Chart(ctxUser, {
-        type: "line",
-        data: {
-          labels: [],
-          datasets: [
-            {
-              label: "用户侧成交电量（MWh）",
-              data: [],
-              borderColor: "#0f766e",
-              backgroundColor: tealGradient,
-              borderWidth: 2.2,
-              pointRadius: 0,
-              pointHoverRadius: 5,
-              tension: 0.36,
-              fill: true
-            }
+      charts.user = new Chart(ctxUser,{
+        type:"line",
+        data:{
+          labels:[],
+          datasets:[
+            dataset("用户侧成交电量（MWh）","#0f766e",gradient(ctxUser,"rgba(20,184,166,.20)"))
           ]
         },
-        options: baseOptions
+        options:baseChartOptions()
       });
 
-      charts.price = new Chart(ctxPrice, {
-        type: "line",
-        data: {
-          labels: [],
-          datasets: [
-            {
-              label: "用户侧平均电价（元/MWh）",
-              data: [],
-              borderColor: "#b45309",
-              backgroundColor: orangeGradient,
-              borderWidth: 2.2,
-              pointRadius: 0,
-              pointHoverRadius: 5,
-              tension: 0.36,
-              fill: true,
-              spanGaps: true
-            }
+      charts.price = new Chart(ctxPrice,{
+        type:"line",
+        data:{
+          labels:[],
+          datasets:[
+            dataset("用户侧平均电价（元/MWh）","#b45309",gradient(ctxPrice,"rgba(245,158,11,.22)"),{spanGaps:true})
           ]
         },
-        options: baseOptions
+        options:baseChartOptions()
       });
     }
 
@@ -1014,180 +498,99 @@
         calcMonthAvg();
         render();
 
-        if (allData.length > 0) {
-          const last = allData[allData.length - 1];
-          const [m, d] = last.日期.split(".").map(Number);
-          const defaultDate = `2026-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-          document.getElementById("selectDate").value = defaultDate;
+        const last = allData.at(-1);
+        if (last) {
+          const [m,d] = last.日期.split(".").map(Number);
+          $("selectDate").value = `2026-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
         }
 
-        document.getElementById("status").innerText = "数据状态：已完成更新";
+        $("status").innerText = "数据状态：已完成更新";
       } catch (e) {
-        document.getElementById("status").innerText = "数据状态：加载异常，请检查 data.json 文件";
+        $("status").innerText = "数据状态：加载异常，请检查 data.json 文件";
         console.error(e);
       }
     }
 
     function renderDashboard() {
-      if (!allData || allData.length === 0) return;
-      const last = allData[allData.length - 1];
-      setLatestCards(last);
+      setLatestCards(allData.at(-1));
     }
 
-    function getMonthFilterData(monthNum) {
-      return allData.filter(item => {
-        const itemMonth = item.日期.split(".")[0];
-        return itemMonth === String(monthNum);
-      });
+    function monthData(month) {
+      return allData.filter(item => item.日期.split(".")[0] === String(month));
     }
 
     function calcSingleMonth(month) {
-      const monthList = getMonthFilterData(month);
+      const list = monthData(month);
       let totalGen = 0;
       let totalUser = 0;
       let totalPrice = 0;
-      let priceValidCount = 0;
+      let priceCount = 0;
 
-      monthList.forEach(item => {
+      list.forEach(item => {
         totalGen += Number(item["发电侧总成交量（MWh）"]) || 0;
         totalUser += Number(item["用户侧总成交量（MWh)"]) || 0;
 
         const price = item["用户侧总平均价（元/MWh）"];
         if (price !== null && price !== undefined && price !== "") {
           totalPrice += Number(price);
-          priceValidCount++;
+          priceCount++;
         }
       });
 
-      const dayCount = monthList.length;
-
       return {
-        dayCount: dayCount,
-        avgGen: dayCount > 0 ? totalGen / dayCount : 0,
-        avgUser: dayCount > 0 ? totalUser / dayCount : 0,
-        avgPrice: priceValidCount > 0 ? totalPrice / priceValidCount : null
+        dayCount:list.length,
+        avgGen:list.length ? totalGen / list.length : 0,
+        avgUser:list.length ? totalUser / list.length : 0,
+        avgPrice:priceCount ? totalPrice / priceCount : null
       };
     }
 
-    function calcMonthAvg() {
-      const currMonth = Number(document.getElementById("monthSelectInline").value);
-
-      const currData = calcSingleMonth(currMonth);
-      const prevData = currMonth > 1 ? calcSingleMonth(currMonth - 1) : null;
-
-      document.getElementById("monthTitle").innerText = `2026年${currMonth}月月度统计指标`;
-
-      document.getElementById("monthAvgGen").innerText = formatNumber(currData.avgGen, 2);
-      document.getElementById("monthAvgUser").innerText = formatNumber(currData.avgUser, 2);
-      document.getElementById("monthAvgPrice").innerText =
-        currData.avgPrice == null ? "暂无数据" : formatNumber(currData.avgPrice, 2);
-      document.getElementById("monthDayCount").innerText = currData.dayCount;
-
-      function getRateText(curr, prev) {
-        if (curr == null || prev == null || prev === 0) {
-          return `<div class="rate-none">环比：暂无可比数据</div>`;
-        }
-
-        const rate = ((curr - prev) / prev * 100).toFixed(2);
-
-        if (rate > 0) {
-          return `<div class="rate-up">环比：上升 ${rate}%</div>`;
-        } else if (rate < 0) {
-          return `<div class="rate-down">环比：下降 ${Math.abs(rate)}%</div>`;
-        } else {
-          return `<div class="rate-none">环比：持平</div>`;
-        }
+    function rateHtml(curr, prev) {
+      if (curr == null || prev == null || prev === 0) {
+        return `<div class="rate-none">环比：暂无可比数据</div>`;
       }
 
-      document.getElementById("genRate").innerHTML = getRateText(currData.avgGen, prevData?.avgGen);
-      document.getElementById("userRate").innerHTML = getRateText(currData.avgUser, prevData?.avgUser);
-      document.getElementById("priceRate").innerHTML = getRateText(currData.avgPrice, prevData?.avgPrice);
+      const rate = ((curr - prev) / prev * 100).toFixed(2);
+
+      if (rate > 0) return `<div class="rate-up">环比：上升 ${rate}%</div>`;
+      if (rate < 0) return `<div class="rate-down">环比：下降 ${Math.abs(rate)}%</div>`;
+
+      return `<div class="rate-none">环比：持平</div>`;
     }
 
-    function getCurrentPeriodValue() {
-      return document.getElementById("period").value;
+    function calcMonthAvg() {
+      const month = Number($("monthSelectInline").value);
+      const curr = calcSingleMonth(month);
+      const prev = month > 1 ? calcSingleMonth(month - 1) : null;
+
+      $("monthTitle").innerText = `2026年${month}月月度统计指标`;
+      $("monthAvgGen").innerText = formatNumber(curr.avgGen,2);
+      $("monthAvgUser").innerText = formatNumber(curr.avgUser,2);
+      $("monthAvgPrice").innerText = curr.avgPrice == null ? "暂无数据" : formatNumber(curr.avgPrice,2);
+      $("monthDayCount").innerText = curr.dayCount;
+
+      $("genRate").innerHTML = rateHtml(curr.avgGen, prev?.avgGen);
+      $("userRate").innerHTML = rateHtml(curr.avgUser, prev?.avgUser);
+      $("priceRate").innerHTML = rateHtml(curr.avgPrice, prev?.avgPrice);
     }
 
     function filterData() {
-      const v = getCurrentPeriodValue();
+      const range = PERIOD_RANGES[$("period").value];
 
-      if (v === "all") return allData;
+      if (!range) return allData;
+
+      const [month,start,end] = range;
 
       return allData.filter(item => {
-        const [m, d] = item.日期.split(".").map(Number);
-
-        if (v === "1-15") return m === 1 && d >= 1 && d <= 15;
-        if (v === "16-31") return m === 1 && d >= 16 && d <= 31;
-        if (v === "2-15") return m === 2 && d >= 1 && d <= 15;
-        if (v === "16-28") return m === 2 && d >= 16 && d <= 28;
-        if (v === "3-15") return m === 3 && d >= 1 && d <= 15;
-        if (v === "16-31-3") return m === 3 && d >= 16 && d <= 31;
-        if (v === "1-15-4") return m === 4 && d >= 1 && d <= 15;
-        if (v === "16-30-4") return m === 4 && d >= 16 && d <= 30;
-
-        return true;
+        const [m,d] = item.日期.split(".").map(Number);
+        return m === month && d >= start && d <= end;
       });
     }
 
-    const analysisText = {
-      "1-15": `
-        <h3>1月1日—1月15日运行特征分析</h3>
-        <p>该阶段用户侧成交电量整体保持在相对高位，说明节前工业生产和社会用电需求仍处于较稳定状态。</p>
-        <p>从价格表现看，用户侧平均电价维持较高水平，反映出冬季用电需求及供需关系对市场价格形成了一定支撑。</p>
-      `,
-
-      "16-31": `
-        <h3>1月16日—1月31日运行特征分析</h3>
-        <p>随着春节临近，部分企业陆续进入停工或减产阶段，用户侧成交电量出现一定回落。</p>
-        <p>该阶段电价波动有所增强，市场供需关系由前期偏紧逐步转向相对宽松。</p>
-      `,
-
-      "2-15": `
-        <h3>2月1日—2月15日运行特征分析</h3>
-        <p>该阶段处于春节假期影响较明显的时间窗口，工业生产活动减弱，用户侧成交电量明显下降。</p>
-        <p>受用电需求回落影响，用户侧平均电价整体处于较低水平，市场供需宽松特征较为明显。</p>
-      `,
-
-      "16-28": `
-        <h3>2月16日—2月28日运行特征分析</h3>
-        <p>春节假期后，企业复工复产逐步推进，用户侧成交电量呈现恢复性增长。</p>
-        <p>随着负荷水平回升，用户侧平均电价同步出现上行趋势，市场逐渐回归常态运行区间。</p>
-      `,
-
-      "3-15": `
-        <h3>3月1日—3月15日运行特征分析</h3>
-        <p>进入3月后，工业生产和社会用电需求进一步恢复，成交电量整体保持上升态势。</p>
-        <p>价格走势与成交电量变化具有一定同步性，说明市场价格对需求侧变化具有较明显响应。</p>
-      `,
-
-      "16-31-3": `
-        <h3>3月16日—3月31日运行特征分析</h3>
-        <p>该阶段用户侧成交电量继续增长，反映出复工复产后的用电需求进一步释放。</p>
-        <p>电价水平整体抬升，说明随着成交电量增加，市场供需关系有所收紧。</p>
-      `,
-
-      "1-15-4": `
-        <h3>4月1日—4月15日运行特征分析</h3>
-        <p>4月上半月成交电量延续增长趋势，用户侧用电需求维持较高水平。</p>
-        <p>从价格变化看，平均电价保持在相对高位，表明市场需求对价格仍具有较强支撑作用。</p>
-      `,
-
-      "16-30-4": `
-        <h3>4月16日—4月30日运行特征分析</h3>
-        <p>该阶段用电负荷整体保持高位，发电侧与用户侧成交电量之间的变化关系仍需结合后续数据进一步观察。</p>
-        <p>由于部分日期数据可能尚未完整更新，电价趋势分析应以最终发布数据为准。</p>
-      `,
-
-      "all": `
-        <h3>全周期运行特征分析</h3>
-        <p>从整体趋势看，1月至2月受春节假期影响，用户侧成交电量出现阶段性回落；3月以后随着复工复产推进，成交电量逐步恢复并呈现上升趋势。</p>
-        <p>用户侧平均电价整体与负荷变化保持较高一致性，说明市场价格对用电需求变化具有一定响应特征。</p>
-      `
-    };
-
-    function updateAnalysis() {
-      const v = getCurrentPeriodValue();
-      document.getElementById("analysis").innerHTML = analysisText[v] || analysisText.all;
+    function updateChart(chart, labels, ...series) {
+      chart.data.labels = labels;
+      series.forEach((data, i) => chart.data.datasets[i].data = data);
+      chart.update();
     }
 
     function render() {
@@ -1196,64 +599,34 @@
       const dates = data.map(i => i.日期);
       const gen = data.map(i => Number(i["发电侧总成交量（MWh）"]) || 0);
       const user = data.map(i => Number(i["用户侧总成交量（MWh)"]) || 0);
-
       const price = data.map(i => {
-        const v = i["用户侧总平均价（元/MWh）"];
-        return v == null ? null : parseFloat(v);
+        const value = i["用户侧总平均价（元/MWh）"];
+        return value == null ? null : parseFloat(value);
       });
 
-      charts.compare.data.labels = dates;
-      charts.compare.data.datasets[0].data = gen;
-      charts.compare.data.datasets[1].data = user;
-      charts.compare.update();
+      updateChart(charts.compare, dates, gen, user);
+      updateChart(charts.gen, dates, gen);
+      updateChart(charts.user, dates, user);
+      updateChart(charts.price, dates, price);
 
-      charts.gen.data.labels = dates;
-      charts.gen.data.datasets[0].data = gen;
-      charts.gen.update();
+      $("tableBody").innerHTML = data.map(row => `
+        <tr>
+          <td>${row.日期}</td>
+          <td>${formatNumber(row["发电侧总成交量（MWh）"],3)}</td>
+          <td>${formatNumber(row["用户侧总成交量（MWh)"],3)}</td>
+          <td>${row["用户侧总平均价（元/MWh）"] == null ? "暂无数据" : formatNumber(row["用户侧总平均价（元/MWh）"],2)}</td>
+        </tr>
+      `).join("");
 
-      charts.user.data.labels = dates;
-      charts.user.data.datasets[0].data = user;
-      charts.user.update();
-
-      charts.price.data.labels = dates;
-      charts.price.data.datasets[0].data = price;
-      charts.price.update();
-
-      document.getElementById("tableBody").innerHTML = data.map(row => {
-        const genValue = row["发电侧总成交量（MWh）"];
-        const userValue = row["用户侧总成交量（MWh)"];
-        const priceValue = row["用户侧总平均价（元/MWh）"];
-
-        return `
-          <tr>
-            <td>${row.日期}</td>
-            <td>${formatNumber(genValue, 3)}</td>
-            <td>${formatNumber(userValue, 3)}</td>
-            <td>${priceValue == null ? "暂无数据" : formatNumber(priceValue, 2)}</td>
-          </tr>
-        `;
-      }).join("");
-
-      updateAnalysis();
+      $("analysis").innerHTML = analysisText[$("period").value] || analysisText.all;
     }
 
-    function syncPeriod(sourceSelect, targetSelect) {
-      targetSelect.value = sourceSelect.value;
-      render();
-    }
-
-    const periodSelect = document.getElementById("period");
-    const periodFloatSelect = document.getElementById("periodFloat");
-
-    periodSelect.addEventListener("change", function () {
-      syncPeriod(periodSelect, periodFloatSelect);
-    });
-
-    periodFloatSelect.addEventListener("change", function () {
-      syncPeriod(periodFloatSelect, periodSelect);
-    });
-
+    initPeriodSelects();
     initCharts();
+
+    $("selectDate").addEventListener("change", selectByDate);
+    $("monthSelectInline").addEventListener("change", calcMonthAvg);
+
     loadData();
   </script>
 </body>
