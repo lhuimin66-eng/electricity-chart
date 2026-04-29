@@ -16,77 +16,12 @@ export async function onRequestPost(context) {
       });
     }
 
-    const prompt = `
-你是电力市场数据趋势预测助手。
-请根据用户提供的最近十五日交易数据，简单预测未来十五日趋势。
-
-要求：
-1. 只基于已提供数据做趋势外推；
-2. 不要声称使用了天气、往年数据或其他外部数据；
-3. 预测指标包括：发电侧成交电量、用户侧成交电量、用户侧平均电价；
-4. 预测结果用于数据平台展示，仅供趋势参考；
-5. 未来十五日预测值应围绕最近十五日均值上下波动，不要出现离谱跳变；
-6. 如果最近十五日整体上升，可适度上调；如果下降，可适度下调；如果波动不明显，则保持平稳小幅波动；
-7. 单日变化幅度尽量控制在最近均值的10%以内；
-8. 必须只返回 JSON，不要返回 Markdown，不要写解释过程。
-
-返回格式必须严格如下：
-{
-  "forecast": [
-    {
-      "date": "5.1",
-      "genVolume": 12345.67,
-      "userVolume": 12345.67,
-      "avgPrice": 380.12
-    }
-  ],
-  "summary": "预计未来十五日……"
-}
-
-最近十五日数据：
-${JSON.stringify(data)}
-`;
-
-    const result = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
-      messages: [
-        {
-          role: "system",
-          content: "你是专业的电力交易趋势预测助手，只返回合法 JSON。"
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ]
-    });
-
-    const text =
-      (result && (result.response || result.result || result.text)) || "";
-
-    const parsed = parseJsonFromText(text);
-
-    if (!parsed || !Array.isArray(parsed.forecast)) {
-      return Response.json(
-        {
-          source: "error",
-          forecast: [],
-          summary: "AI 预测结果格式异常，请稍后重试。",
-          raw: text
-        },
-        { status: 500 }
-      );
-    }
-
-    const normalizedForecast = parsed.forecast.slice(0, 15).map(item => ({
-      date: item.date ?? "",
-      genVolume: toNumber(item.genVolume),
-      userVolume: toNumber(item.userVolume),
-      avgPrice: toNumber(item.avgPrice)
-    }));
+    const forecast = buildForecast(data);
+    const summary = await buildSummary(env, period, data, forecast);
 
     const responseData = {
-      forecast: normalizedForecast,
-      summary: parsed.summary || "预测结果仅供趋势参考。"
+      forecast,
+      summary
     };
 
     await env.AI_CACHE.put(cacheKey, JSON.stringify(responseData), {
@@ -110,19 +45,112 @@ ${JSON.stringify(data)}
   }
 }
 
-function parseJsonFromText(text) {
-  try {
-    return JSON.parse(text);
-  } catch (e) {
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return null;
+function buildForecast(data) {
+  const recent = data.slice(-15);
+  const lastDate = recent.at(-1)?.日期 || "4.30";
+  const dates = getNextDates(lastDate, 15);
 
-    try {
-      return JSON.parse(match[0]);
-    } catch (err) {
-      return null;
-    }
+  const genValues = recent.map(i => toNumber(i["发电侧总成交量（MWh）"])).filter(v => v !== null);
+  const userValues = recent.map(i => toNumber(i["用户侧总成交量（MWh)"])).filter(v => v !== null);
+  const priceValues = recent.map(i => toNumber(i["用户侧总平均价（元/MWh）"])).filter(v => v !== null);
+
+  const genForecast = forecastSeries(genValues, 15);
+  const userForecast = forecastSeries(userValues, 15);
+  const priceForecast = forecastSeries(priceValues, 15);
+
+  return dates.map((date, index) => ({
+    date,
+    genVolume: round(genForecast[index], 3),
+    userVolume: round(userForecast[index], 3),
+    avgPrice: round(priceForecast[index], 2)
+  }));
+}
+
+function forecastSeries(values, count) {
+  if (!values.length) return Array(count).fill(null);
+
+  const avg = average(values);
+  const last = values.at(-1);
+  const diffs = [];
+
+  for (let i = 1; i < values.length; i++) {
+    diffs.push(values[i] - values[i - 1]);
   }
+
+  let trend = diffs.length ? average(diffs) : 0;
+
+  const maxStep = Math.abs(avg) * 0.04;
+  trend = clamp(trend, -maxStep, maxStep);
+
+  const result = [];
+
+  for (let i = 1; i <= count; i++) {
+    const seasonalWave = Math.sin(i / 2.8) * Math.abs(avg) * 0.015;
+    const value = last + trend * i + seasonalWave;
+    const min = avg * 0.85;
+    const max = avg * 1.15;
+
+    result.push(clamp(value, min, max));
+  }
+
+  return result;
+}
+
+async function buildSummary(env, period, data, forecast) {
+  try {
+    if (!env.AI) {
+      return defaultSummary();
+    }
+
+    const prompt = `
+你是电力市场数据分析助手。
+请根据最近十五日实际数据和未来十五日简单趋势预测，生成一句简洁说明。
+要求：
+1. 文字控制在100字以内；
+2. 不要夸大预测准确性；
+3. 明确这是基于近期数据的趋势参考；
+4. 不要使用 Markdown。
+
+分析时段：${period}
+最近十五日数据：${JSON.stringify(data)}
+预测结果：${JSON.stringify(forecast)}
+`;
+
+    const result = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
+      messages: [
+        {
+          role: "system",
+          content: "你是专业的电力市场数据分析助手。"
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ]
+    });
+
+    return result.response || result.result || result.text || defaultSummary();
+  } catch (error) {
+    return defaultSummary();
+  }
+}
+
+function defaultSummary() {
+  return "基于最近十五日成交电量与电价变化进行简单趋势外推，预测结果仅供趋势参考。";
+}
+
+function getNextDates(lastDate, count) {
+  const [month, day] = lastDate.split(".").map(Number);
+  const base = new Date(2026, month - 1, day);
+  const dates = [];
+
+  for (let i = 1; i <= count; i++) {
+    const next = new Date(base);
+    next.setDate(base.getDate() + i);
+    dates.push(`${next.getMonth() + 1}.${next.getDate()}`);
+  }
+
+  return dates;
 }
 
 function toNumber(value) {
@@ -131,9 +159,23 @@ function toNumber(value) {
   return Number.isFinite(num) ? num : null;
 }
 
+function average(values) {
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function clamp(value, min, max) {
+  if (value === null || value === undefined) return null;
+  return Math.min(Math.max(value, min), max);
+}
+
+function round(value, digits) {
+  if (value === null || value === undefined) return null;
+  return Number(value.toFixed(digits));
+}
+
 async function createCacheKey(period, data) {
   const raw = JSON.stringify({
-    type: "forecast",
+    type: "forecast-v2",
     period,
     data
   });
