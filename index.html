@@ -326,7 +326,7 @@
     };
 
     let allData = [];
-    let charts = {};
+    let charts = {}; let forecastCharts = {}; let forecastTimer = null;
 
     function formatNumber(value, digits = 2) {
       const num = Number(value);
@@ -513,7 +513,40 @@
         options:baseChartOptions()
       });
     }
+function initForecastCharts() {
+  const volumeCtx = $("chartForecastVolume").getContext("2d");
+  const priceCtx = $("chartForecastPrice").getContext("2d");
 
+  forecastCharts.volume = new Chart(volumeCtx, {
+    type: "line",
+    data: {
+      labels: [],
+      datasets: [
+        dataset("发电侧成交电量预测（MWh）", "#1d4ed8", gradient(volumeCtx, "rgba(37,99,235,.18)"), {
+          borderDash: [6, 5]
+        }),
+        dataset("用户侧成交电量预测（MWh）", "#0891b2", gradient(volumeCtx, "rgba(14,165,233,.14)"), {
+          borderDash: [6, 5]
+        })
+      ]
+    },
+    options: baseChartOptions()
+  });
+
+  forecastCharts.price = new Chart(priceCtx, {
+    type: "line",
+    data: {
+      labels: [],
+      datasets: [
+        dataset("用户侧平均电价预测（元/MWh）", "#b45309", gradient(priceCtx, "rgba(245,158,11,.18)"), {
+          borderDash: [6, 5],
+          spanGaps: true
+        })
+      ]
+    },
+    options: baseChartOptions()
+  });
+}
     async function loadData() {
       try {
         const res = await fetch("data.json?v=" + Date.now());
@@ -656,6 +689,67 @@ function updateAIAnalysis(data) {
     }
   }, 300);
 }
+    function isLatestPeriod() {
+  return $("period").value === "16-30-4";
+}
+
+function hideForecast() {
+  $("forecastSection").classList.remove("show");
+}
+
+function updateForecastChart(chart, labels, ...series) {
+  chart.data.labels = labels;
+  series.forEach((data, i) => chart.data.datasets[i].data = data);
+  chart.update();
+}
+
+function updateForecast(data) {
+  clearTimeout(forecastTimer);
+
+  if (!isLatestPeriod()) {
+    hideForecast();
+    return;
+  }
+
+  $("forecastSection").classList.add("show");
+  $("forecastSummary").innerText = "AI 正在根据最近十五日数据生成未来十五日预测，请稍候...";
+
+  forecastTimer = setTimeout(async () => {
+    try {
+      const res = await fetch("/api/forecast", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          period: $("period").selectedOptions[0].text,
+          data
+        })
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.error || "AI 预测失败");
+      }
+
+      const forecast = Array.isArray(result.forecast) ? result.forecast : [];
+      const dates = forecast.map(i => i.date);
+      const gen = forecast.map(i => Number(i.genVolume) || 0);
+      const user = forecast.map(i => Number(i.userVolume) || 0);
+      const price = forecast.map(i => i.avgPrice == null ? null : Number(i.avgPrice));
+
+      updateForecastChart(forecastCharts.volume, dates, gen, user);
+      updateForecastChart(forecastCharts.price, dates, price);
+
+      const sourceText = result.source === "cache" ? "缓存预测" : "AI 实时预测";
+      $("forecastSummary").innerText = `${sourceText}：${result.summary || "预测结果仅供趋势参考。"}`;
+    } catch (error) {
+      $("forecastSummary").innerText = "AI 预测暂不可用，请稍后重试。";
+      console.error(error);
+    }
+  }, 300);
+}
     function render() {
       const data = filterData();
 
@@ -682,10 +776,13 @@ function updateAIAnalysis(data) {
       `).join("");
 
       updateAIAnalysis(data);
+      updateForecast(data);
     }
 
     initPeriodSelects();
     initCharts();
+    initForecastCharts();
+    
 
     $("selectDate").addEventListener("change", selectByDate);
     $("monthSelectInline").addEventListener("change", calcMonthAvg);
