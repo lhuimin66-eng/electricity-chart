@@ -21,13 +21,14 @@ export async function onRequestPost(context) {
 请根据用户提供的最近十五日交易数据，简单预测未来十五日趋势。
 
 要求：
-1. 只基于已提供数据做趋势外推，不要声称使用了天气、往年数据或外部数据；
-2. 预测指标包括：发电侧成交电量、用户侧成交电量、用户侧平均电价；
-3. 预测结果用于数据平台展示，仅供趋势参考；
-4. 未来十五日预测值应围绕最近十五日均值上下波动，不要出现离谱跳变；
-5. 如果最近十五日整体上升，可适度上调；如果下降，可适度下调；如果波动不明显，则保持平稳小幅波动；
-6. 单日变化幅度尽量控制在最近均值的10%以内；
-7. 必须只返回 JSON，不要返回 Markdown，不要解释过程。
+1. 只基于已提供数据做趋势外推；
+2. 不要声称使用了天气、往年数据或其他外部数据；
+3. 预测指标包括：发电侧成交电量、用户侧成交电量、用户侧平均电价；
+4. 预测结果用于数据平台展示，仅供趋势参考；
+5. 未来十五日预测值应围绕最近十五日均值上下波动，不要出现离谱跳变；
+6. 如果最近十五日整体上升，可适度上调；如果下降，可适度下调；如果波动不明显，则保持平稳小幅波动；
+7. 单日变化幅度尽量控制在最近均值的10%以内；
+8. 必须只返回 JSON，不要返回 Markdown，不要写解释过程。
 
 返回格式必须严格如下：
 {
@@ -39,48 +40,28 @@ export async function onRequestPost(context) {
       "avgPrice": 380.12
     }
   ],
-  "summary": "预计未来十五日..."
+  "summary": "预计未来十五日……"
 }
 
-分析时段：${period}
-最近十五日数据：${JSON.stringify(data)}
+最近十五日数据：
+${JSON.stringify(data)}
 `;
 
-   const controller = new AbortController();
-const timeoutId = setTimeout(() => controller.abort(), 20000);
-
-const aiResponse = await fetch("https://api.openai.com/v1/responses", {
-  method: "POST",
-  headers: {
-    "Authorization": `Bearer ${env.OPENAI_API_KEY}`,
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    model: "gpt-4o-mini",
-    input: prompt,
-    temperature: 0.3,
-    max_output_tokens: 800
-  }),
-  signal: controller.signal
-});
-
-clearTimeout(timeoutId);
-
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      return Response.json(
+    const result = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
+      messages: [
         {
-          source: "error",
-          forecast: [],
-          summary: "AI 预测暂不可用，请稍后重试。",
-          error: errorText
+          role: "system",
+          content: "你是专业的电力交易趋势预测助手，只返回合法 JSON。"
         },
-        { status: 500 }
-      );
-    }
+        {
+          role: "user",
+          content: prompt
+        }
+      ]
+    });
 
-    const result = await aiResponse.json();
-    const text = result.output_text || "";
+    const text =
+      (result && (result.response || result.result || result.text)) || "";
 
     const parsed = parseJsonFromText(text);
 
@@ -96,8 +77,15 @@ clearTimeout(timeoutId);
       );
     }
 
+    const normalizedForecast = parsed.forecast.slice(0, 15).map(item => ({
+      date: item.date ?? "",
+      genVolume: toNumber(item.genVolume),
+      userVolume: toNumber(item.userVolume),
+      avgPrice: toNumber(item.avgPrice)
+    }));
+
     const responseData = {
-      forecast: parsed.forecast.slice(0, 15),
+      forecast: normalizedForecast,
       summary: parsed.summary || "预测结果仅供趋势参考。"
     };
 
@@ -135,6 +123,12 @@ function parseJsonFromText(text) {
       return null;
     }
   }
+}
+
+function toNumber(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const num = Number(String(value).replace(/[^\d.-]/g, ""));
+  return Number.isFinite(num) ? num : null;
 }
 
 async function createCacheKey(period, data) {
