@@ -245,6 +245,31 @@
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
     }
 
+    /* 新增：趋势分析时段固定悬浮在页面右侧中间 */
+    .sticky-period-control {
+      position: fixed;
+      right: 34px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 999;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid #dbeafe;
+      border-radius: 14px;
+      padding: 12px 14px;
+      box-shadow: 0 14px 32px rgba(15, 23, 42, 0.16);
+      backdrop-filter: blur(8px);
+    }
+
+    .sticky-period-control label {
+      color: #334155;
+      font-weight: 650;
+    }
+
+    .sticky-period-control select {
+      min-width: 180px;
+      border-color: #bfdbfe;
+    }
+
     canvas {
       width: 100% !important;
       height: 360px !important;
@@ -485,6 +510,10 @@
       .strip-item:nth-child(2) {
         border-bottom: 1px solid #e5e7eb;
       }
+
+      .sticky-period-control {
+        right: 18px;
+      }
     }
 
     @media (max-width: 760px) {
@@ -539,6 +568,21 @@
       .small-chart canvas {
         height: 260px !important;
       }
+
+      /* 手机端改成底部悬浮，避免挡住图表 */
+      .sticky-period-control {
+        left: 14px;
+        right: 14px;
+        top: auto;
+        bottom: 18px;
+        transform: none;
+        width: auto;
+        justify-content: space-between;
+      }
+
+      .sticky-period-control select {
+        min-width: 0;
+      }
     }
   </style>
 </head>
@@ -567,7 +611,7 @@
         <div class="panel-title">
           <h2>发电侧与用户侧成交电量总览</h2>
 
-          <div class="panel-control">
+          <div class="panel-control sticky-period-control">
             <label for="period">趋势分析时段</label>
             <select id="period">
               <option value="all">全部数据</option>
