@@ -46,18 +46,25 @@ export async function onRequestPost(context) {
 最近十五日数据：${JSON.stringify(data)}
 `;
 
-    const aiResponse = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-4.1-mini",
-        input: prompt,
-        temperature: 0.3
-      })
-    });
+   const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+const aiResponse = await fetch("https://api.openai.com/v1/responses", {
+  method: "POST",
+  headers: {
+    "Authorization": `Bearer ${env.OPENAI_API_KEY}`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    model: "gpt-4o-mini",
+    input: prompt,
+    temperature: 0.3,
+    max_output_tokens: 800
+  }),
+  signal: controller.signal
+});
+
+clearTimeout(timeoutId);
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
