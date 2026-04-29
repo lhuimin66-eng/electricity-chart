@@ -21,7 +21,7 @@ export async function onRequestPost(context) {
 
     const responseData = {
       forecast,
-      summary
+      summary: "【forecast-v6】" + summary
     };
 
     await env.AI_CACHE.put(cacheKey, JSON.stringify(responseData), {
