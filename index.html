@@ -789,5 +789,35 @@ function updateForecast(data) {
 
     loadData();
   </script>
+  <!-- 1. 定义一个容器，并设置好宽度和高度 -->
+<div class="map-container" style="width: 100%; max-width: 1200px; margin: 0 auto; border: 2px solid #0056b3; border-radius: 8px; overflow: hidden;">
+    
+    <!-- 2. 嵌入 OpenGridWorks 链接 -->
+    <!-- 关键点：链接末尾必须严格遵循 #Zoom/Lat/Lon 的格式 -->
+    <iframe 
+        id="chinaGridMap"
+        src="https://opengridworks.org/#4/36.50/105.00" 
+        width="100%" 
+        height="650px" 
+        frameborder="0" 
+        allowfullscreen>
+    </iframe>
+    
+</div>
+
+<!-- 3. 添加一段“防跑偏”脚本 -->
+<script>
+    // 这段脚本的作用是：如果用户浏览器有缓存导致定位错误，
+    // 它会在页面加载完成后，再次刷新 URL 强制定位到中国。
+    window.onload = function() {
+        var mapFrame = document.getElementById('chinaGridMap');
+        var targetUrl = "https://opengridworks.org/#4/36.50/105.00";
+        
+        // 检查当前 src 是否包含正确位置，如果没有，强制重置
+        if (mapFrame.src !== targetUrl) {
+            mapFrame.src = targetUrl;
+        }
+    };
+</script>
 </body>
 </html>
