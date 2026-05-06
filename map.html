@@ -20,9 +20,10 @@
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-fetch('exportnew.geojson')
+// 在文件名后面加一个时间戳，彻底干掉缓存
+fetch('exportnew.geojson?t=' + new Date().getTime())
     .then(res => {
-        if (!res.ok) throw new Error('文件找不到，请检查文件名');
+        if (!res.ok) throw new Error('服务器返回错误，状态码：' + res.status);
         return res.json();
     })
     .then(data => {
