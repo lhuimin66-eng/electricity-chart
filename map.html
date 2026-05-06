@@ -16,69 +16,44 @@
     <!-- 引入地图逻辑库 -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // 1. 创建地图，设置初始坐标（广东中心位置）和缩放等级
-        var map = L.map('map').setView([23.13, 113.26], 7);
+       var map = L.map('map').setView([23.13, 113.26], 7);
 
-        // 2. 加载底图（这里用高德或OpenStreetMap的浅色图，背景干净）
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: 'Power Grid Data'
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+fetch('export.geojson')
+    .then(res => {
+        if (!res.ok) throw new Error('文件找不到，请检查文件名');
+        return res.json();
+    })
+    .then(data => {
+        L.geoJSON(data, {
+            style: function (feature) {
+                var p = feature.properties;
+                // 如果是发电站（Polygon）
+                if (feature.geometry.type.indexOf("Polygon") !== -1) {
+                    return { fillColor: "#ff9800", color: "#e65100", weight: 2, fillOpacity: 0.7 };
+                }
+                // 如果是输电线（LineString）[cite: 1]
+                var v = p.voltage;
+                return {
+                    color: v === "500000" ? "#d32f2f" : "#1976d2", // 500kV红色，其他蓝色[cite: 1]
+                    weight: v === "500000" ? 5 : 2,
+                    opacity: 0.8
+                };
+            },
+            onEachFeature: function (feature, layer) {
+                var p = feature.properties;
+                // 自动寻找名字
+                var name = p.name || p["name:zh"] || p.ref || "电力设施";
+                var v = p.voltage ? (parseInt(p.voltage) / 1000) + "kV" : "未知等级";
+                var output = p["plant:output:electricity"] ? `<br>装机容量: ${p["plant:output:electricity"]}` : "";
+
+                layer.bindPopup(`<b>${name}</b><hr>类型: ${p.power === 'plant' ? '发电站' : '线路'}<br>等级: ${v}${output}`);
+                layer.bindTooltip(name);
+            }
         }).addTo(map);
-
-        // 3. 开始加载你的 JSON 文件
-       fetch('export(1).geojson')
-            .then(res => res.json())
-            .then(geojsonData => {
-                renderMap(geojsonData);
-            });
-function renderMap(data) {
-    L.geoJSON(geojsonData, {
-    // 1. 设置样式：区分发电站和线路
-    style: function (feature) {
-        var props = feature.properties;
-        // 如果是发电站（面要素）
-        if (feature.geometry.type.includes("Polygon")) {
-            return {
-                fillColor: "#ff9800", // 橙色代表电厂
-                color: "#e65100",
-                weight: 2,
-                fillOpacity: 0.7
-            };
-        }
-        // 如果是输电线路（线要素）
-        var v = props.voltage;
-        return {
-            color: v === "500000" ? "#d32f2f" : "#1976d2", // 500kV用红色，220kV用蓝色
-            weight: v === "500000" ? 5 : 2,
-            opacity: 0.8
-        };
-    },
-
-    // 2. 处理弹窗：把名字和功率显示出来
-    onEachFeature: function (feature, layer) {
-        var props = feature.properties;
-        
-        // 自动提取名字：优先级是 名字 > 编号 > 运营商
-        var name = props.name || props["name:zh"] || props.ref || props.operator || "电力设施";
-        
-        // 提取电压和功率
-        var voltage = props.voltage ? (parseInt(props.voltage) / 1000) + "kV" : "未知";
-        var output = props["plant:output:electricity"] ? `<br><b>装机容量：</b>${props["plant:output:electricity"]}` : "";
-
-        layer.bindPopup(`
-            <div style="min-width:150px">
-                <b style="color:#d32f2f; font-size:14px;">${name}</b><br>
-                <hr style="margin:5px 0">
-                <b>类型：</b>${props.power === "plant" ? "大型发电站" : "输电线"}<br>
-                <b>等级：</b>${voltage}
-                ${output}
-            </div>
-        `);
-
-        // 3. 鼠标悬停显示文字标签
-        layer.bindTooltip(name, { sticky: true });
-    }
-}).addTo(map);
-}
+    })
+    .catch(err => console.error("地图加载出错:", err));
     </script>
 </body>
 </html>
