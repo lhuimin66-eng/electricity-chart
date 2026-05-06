@@ -789,35 +789,52 @@ function updateForecast(data) {
 
     loadData();
   </script>
-  <!-- 1. 定义一个容器，并设置好宽度和高度 -->
-<div class="map-container" style="width: 100%; max-width: 1200px; margin: 0 auto; border: 2px solid #0056b3; border-radius: 8px; overflow: hidden;">
-    
-    <!-- 2. 嵌入 OpenGridWorks 链接 -->
-    <!-- 关键点：链接末尾必须严格遵循 #Zoom/Lat/Lon 的格式 -->
-    <iframe 
-        id="chinaGridMap"
-        src="https://opengridworks.org/#4/36.50/105.00" 
-        width="100%" 
-        height="650px" 
-        frameborder="0" 
-        allowfullscreen>
-    </iframe>
-    
+<!-- 1. 样式：让按钮看起来像公司官网的高级功能 -->
+<style>
+    .grid-link-btn {
+        display: inline-flex;
+        align-items: center;
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        color: white !important;
+        padding: 12px 24px;
+        font-size: 16px;
+        font-weight: bold;
+        text-decoration: none !important;
+        border-radius: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+    .grid-link-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        background: linear-gradient(135deg, #008cff 0%, #0069d9 100%);
+    }
+    .grid-link-btn i { margin-right: 8px; }
+</style>
+
+<!-- 2. 按钮 HTML -->
+<div style="text-align: center; padding: 20px;">
+    <button class="grid-link-btn" onclick="openChinaGrid()">
+        🌐 查看全球电力大数据（中国区域）
+    </button>
 </div>
 
-<!-- 3. 添加一段“防跑偏”脚本 -->
+<!-- 3. 核心脚本：强制定位 -->
 <script>
-    // 这段脚本的作用是：如果用户浏览器有缓存导致定位错误，
-    // 它会在页面加载完成后，再次刷新 URL 强制定位到中国。
-    window.onload = function() {
-        var mapFrame = document.getElementById('chinaGridMap');
-        var targetUrl = "https://opengridworks.org/#4/36.50/105.00";
-        
-        // 检查当前 src 是否包含正确位置，如果没有，强制重置
-        if (mapFrame.src !== targetUrl) {
-            mapFrame.src = targetUrl;
-        }
-    };
+function openChinaGrid() {
+    // 设置中国区的精确位置
+    // #4/36.5/105.0 代表缩放4级，坐标中心在中国
+    const url = "https://opengridworks.org/#4/36.50/105.00";
+    
+    // 打开一个新窗口，并设定好窗口的大小和特征
+    window.open(
+        url, 
+        '_blank', 
+        'width=1200,height=800,menubar=no,toolbar=no,location=yes,status=no,scrollbars=yes'
+    );
+}
 </script>
 </body>
 </html>
