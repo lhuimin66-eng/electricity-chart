@@ -20,7 +20,7 @@
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-fetch('export.geojson')
+fetch('export(1).geojson')
     .then(res => {
         if (!res.ok) throw new Error('文件找不到，请检查文件名');
         return res.json();
