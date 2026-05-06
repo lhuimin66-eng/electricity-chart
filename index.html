@@ -793,29 +793,10 @@ function updateForecast(data) {
 
     loadData();
   </script>
-<!-- 创建一个ID为'map_container'的容器，并设置好高度 -->
-<div id="map_container" style="width: 100%; height: 650px; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);"></div>
-  <script>
-    // 1. 初始化地图：
-    // [36.5, 105.0] 是中国地理中心坐标
-    // 4 是缩放级别（刚好看到全中国）
-    var map = L.map('map_container').setView([36.5, 105.0], 4);
-
-    // 2. 加载普通的底图（提供背景：城市、国界线）
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '© OpenStreetMap contributors' // 版权声明
-    }).addTo(map);
-
-    // 3. ⚠️ 这里是最关键的一步！加载 OpenGridWorks 的电力图层
-    // 这是他们提供的数据瓦片服务链接，通过这个链接我们只把电力数据“抠”出来。
-    // 如果这个链接在你们网络环境下慢，我们可以尝试寻找备用源。
-    var powerLayerUrl = 'https://tiles.opengridworks.org/{z}/{x}/{y}.png';
-
-    L.tileLayer(powerLayerUrl, {
-        opacity: 0.8, // 设置透明度，让电力线条不那么扎眼
-        zIndex: 100 // 保证电力层在最上面
-    }).addTo(map);
-</script>
+<!-- 地图容器 -->
+<section style="padding: 20px;">
+    <h2 style="text-align: center;">广东电网物理分布示意图</h2>
+    <iframe src="map.html" width="100%" height="600px" style="border: 2px solid #ccc; border-radius: 10px;"></iframe>
+</section>
 </body>
 </html>
