@@ -31,58 +31,53 @@
                 renderMap(geojsonData);
             });
 function renderMap(data) {
-    L.geoJSON(data, {
-        // A. 处理“线”的样式
-        style: function (feature) {
-            var v = feature.properties.voltage;
+    L.geoJSON(geojsonData, {
+    // 1. 设置样式：区分发电站和线路
+    style: function (feature) {
+        var props = feature.properties;
+        // 如果是发电站（面要素）
+        if (feature.geometry.type.includes("Polygon")) {
             return {
-                color: v === "500000" ? "#e63946" : "#457b9d", // 500kV用红色，其他用蓝色[cite: 1]
-                weight: v === "500000" ? 5 : 3,               // 高压线画粗一点
-                opacity: 0.7
+                fillColor: "#ff9800", // 橙色代表电厂
+                color: "#e65100",
+                weight: 2,
+                fillOpacity: 0.7
             };
-        },
-
-        // B. 处理“点”（变电站）
-        pointToLayer: function (feature, latlng) {
-            return L.circleMarker(latlng, {
-                radius: 8,
-                fillColor: "#ffca3a",
-                color: "#000",
-                weight: 1,
-                fillOpacity: 0.9
-            });
-        },
-pointToLayer: function (feature, latlng) {
-    // 专门给变电站（点要素）设计的样式
-    return L.circleMarker(latlng, {
-        radius: 10,           // 圆圈大小
-        fillColor: "#ffec3d", // 黄色填充，代表电力设施
-        color: "#000",        // 黑色边框
-        weight: 1,
-        fillOpacity: 0.9
-    });
-},
-
-        // C. 处理“点击”弹窗
-        onEachFeature: function (feature, layer) {
-            var name = feature.properties.name || "无名设施";
-            var voltage = feature.properties.voltage ? (feature.properties.voltage / 1000) + "kV" : "未知电压";
-            
-            // 绑定弹窗内容
-            layer.bindPopup(
-                "<b>设施名称：</b>" + name + "<br>" +
-                "<b>电压等级：</b>" + voltage
-            );
-
-            // 鼠标悬停效果：线路变色
-            layer.on('mouseover', function () {
-                this.setStyle({ weight: 8, opacity: 1 });
-            });
-            layer.on('mouseout', function () {
-                this.setStyle({ weight: 3, opacity: 0.7 });
-            });
         }
-    }).addTo(map);
+        // 如果是输电线路（线要素）
+        var v = props.voltage;
+        return {
+            color: v === "500000" ? "#d32f2f" : "#1976d2", // 500kV用红色，220kV用蓝色
+            weight: v === "500000" ? 5 : 2,
+            opacity: 0.8
+        };
+    },
+
+    // 2. 处理弹窗：把名字和功率显示出来
+    onEachFeature: function (feature, layer) {
+        var props = feature.properties;
+        
+        // 自动提取名字：优先级是 名字 > 编号 > 运营商
+        var name = props.name || props["name:zh"] || props.ref || props.operator || "电力设施";
+        
+        // 提取电压和功率
+        var voltage = props.voltage ? (parseInt(props.voltage) / 1000) + "kV" : "未知";
+        var output = props["plant:output:electricity"] ? `<br><b>装机容量：</b>${props["plant:output:electricity"]}` : "";
+
+        layer.bindPopup(`
+            <div style="min-width:150px">
+                <b style="color:#d32f2f; font-size:14px;">${name}</b><br>
+                <hr style="margin:5px 0">
+                <b>类型：</b>${props.power === "plant" ? "大型发电站" : "输电线"}<br>
+                <b>等级：</b>${voltage}
+                ${output}
+            </div>
+        `);
+
+        // 3. 鼠标悬停显示文字标签
+        layer.bindTooltip(name, { sticky: true });
+    }
+}).addTo(map);
 }
     </script>
 </body>
