@@ -2,12 +2,20 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>公司电力设施分布图</title>
+    <title>广东电网物理分布图</title>
     <!-- 引入地图样式 -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        #map { height: 90vh; width: 100%; } /* 地图高度占屏幕90% */
-        body { margin: 0; font-family: "Microsoft YaHei"; }
+        #map { height: 100vh; width: 100%; } /* 全屏显示，视觉效果更好 */
+        body { margin: 0; font-family: "Microsoft YaHei", sans-serif; }
+        /* 自定义标签样式 */
+        .map-label {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #999;
+            padding: 2px 5px;
+            font-size: 12px;
+            border-radius: 3px;
+        }
     </style>
 </head>
 <body>
@@ -16,50 +24,75 @@
     <!-- 引入地图逻辑库 -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-       var map = L.map('map').setView([23.13, 113.26], 7);
+        // 1. 初始化地图：中心点设在广东中部，缩放级别设为 7 以覆盖全省
+        var map = L.map('map').setView([23.3, 113.5], 7);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        // 2. 加载基础底图
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
 
-// 在文件名后面加一个时间戳，彻底干掉缓存
-fetch('data_full.geojson?t=' + new Date().getTime())
-    .then(res => {
-        if (!res.ok) throw new Error('服务器返回错误，状态码：' + res.status);
-        return res.json();
-    })
-    .then(data => {
-        L.geoJSON(data, {
-            style: function (feature) {
-                var p = feature.properties;
-                // 如果是发电站（Polygon）
-                if (feature.geometry.type.indexOf("Polygon") !== -1) {
-                    return { fillColor: "#ff9800", color: "#e65100", weight: 2, fillOpacity: 0.7 };
-                }
-                // 如果是输电线（LineString）[cite: 1]
-                var v = p.voltage;
-                return {
-                    color: v === "500000" ? "#d32f2f" : "#1976d2", // 500kV红色，其他蓝色[cite: 1]
-                    weight: v === "500000" ? 5 : 2,
-                    opacity: 0.8
-                };
-            },
-           onEachFeature: function (feature, layer) {
-    var p = feature.properties;
-    
-    // 如果有名字（如靖海厂）就用名字，没有就用“电压+线路”代替
-    var voltage = p.voltage ? (parseInt(p.voltage) / 1000) + "kV" : "";
-    var displayName = p.name || p["name:zh"] || p.ref || (voltage + "输电线路");
+        // 3. 加载全省电力数据 (添加随机数后缀 t 以防止浏览器读取旧缓存)
+        fetch('data_full.geojson?t=' + new Date().getTime())
+            .then(res => {
+                if (!res.ok) throw new Error('数据文件加载失败，请检查文件名是否为 data_full.geojson');
+                return res.json();
+            })
+            .then(data => {
+                L.geoJSON(data, {
+                    // 设置不同设施的样式
+                    style: function (feature) {
+                        var p = feature.properties;
+                        // 如果是发电站（面要素 Polygon）
+                        if (feature.geometry.type.indexOf("Polygon") !== -1) {
+                            return { 
+                                fillColor: "#ff9800", // 橙色
+                                color: "#e65100", 
+                                weight: 1, 
+                                fillOpacity: 0.7 
+                            };
+                        }
+                        // 如果是输电线（线要素 LineString）
+                        var v = p.voltage;
+                        return {
+                            color: v === "500000" ? "#d32f2f" : "#1976d2", // 500kV红色，其他(如220kV)蓝色
+                            weight: v === "500000" ? 4 : 2, // 500kV加粗显示，体现骨干网地位
+                            opacity: 0.8
+                        };
+                    },
+                    // 设置交互功能
+                    onEachFeature: function (feature, layer) {
+                        var p = feature.properties;
+                        
+                        // 动态提取名称逻辑：
+                        // 1. 优先取 name (如：广东粤电靖海发电有限公司)
+                        // 2. 其次取 ref (线路编号)
+                        // 3. 都没有则根据电压显示 "XXXkV 输电线路"
+                        var voltageLabel = p.voltage ? (parseInt(p.voltage) / 1000) + "kV" : "";
+                        var displayName = p.name || p["name:zh"] || p.ref || (voltageLabel + "输电线路");
 
-    layer.bindPopup(`
-        <div style="min-width:140px">
-            <b style="color:#d32f2f;">${displayName}</b><br>
-            <hr style="margin:5px 0">
-            <b>电压：</b>${voltage || "未知"}<br>
-            <b>运营：</b>${p.operator || "南方电网"}
-        </div>
-    `);
-}
-    })
-    .catch(err => console.error("地图加载出错:", err));
+                        // 构造弹窗内容
+                        var popupContent = `
+                            <div style="min-width:160px; line-height: 1.6;">
+                                <b style="color:#d32f2f; font-size: 14px;">${displayName}</b><br>
+                                <hr style="margin: 5px 0; border: 0; border-top: 1px solid #eee;">
+                                <b>设施类型：</b>${p.power === 'plant' ? '生产电源' : '骨干网络'}<br>
+                                <b>电压等级：</b>${voltageLabel || "未知"}<br>
+                                ${p.operator ? '<b>运营单位：</b>' + p.operator : '<b>运营单位：</b>南方电网'}
+                                ${p["plant:output:electricity"] ? '<br><b>装机容量：</b>' + p["plant:output:electricity"] : ''}
+                            </div>
+                        `;
+                        layer.bindPopup(popupContent);
+
+                        // 鼠标悬停时显示简单提示
+                        layer.bindTooltip(displayName, { sticky: true });
+                    }
+                }).addTo(map);
+            })
+            .catch(err => {
+                console.error("地图渲染出错:", err);
+                alert("数据加载失败，请确认 data_full.geojson 已上传至仓库根目录。");
+            });
     </script>
 </body>
 </html>
