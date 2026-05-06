@@ -21,7 +21,7 @@
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
 // 在文件名后面加一个时间戳，彻底干掉缓存
-fetch('exportnew.geojson?t=' + new Date().getTime())
+fetch('data_full.geojson?t=' + new Date().getTime())
     .then(res => {
         if (!res.ok) throw new Error('服务器返回错误，状态码：' + res.status);
         return res.json();
@@ -42,17 +42,22 @@ fetch('exportnew.geojson?t=' + new Date().getTime())
                     opacity: 0.8
                 };
             },
-            onEachFeature: function (feature, layer) {
-                var p = feature.properties;
-                // 自动寻找名字
-                var name = p.name || p["name:zh"] || p.ref || "电力设施";
-                var v = p.voltage ? (parseInt(p.voltage) / 1000) + "kV" : "未知等级";
-                var output = p["plant:output:electricity"] ? `<br>装机容量: ${p["plant:output:electricity"]}` : "";
+           onEachFeature: function (feature, layer) {
+    var p = feature.properties;
+    
+    // 如果有名字（如靖海厂）就用名字，没有就用“电压+线路”代替
+    var voltage = p.voltage ? (parseInt(p.voltage) / 1000) + "kV" : "";
+    var displayName = p.name || p["name:zh"] || p.ref || (voltage + "输电线路");
 
-                layer.bindPopup(`<b>${name}</b><hr>类型: ${p.power === 'plant' ? '发电站' : '线路'}<br>等级: ${v}${output}`);
-                layer.bindTooltip(name);
-            }
-        }).addTo(map);
+    layer.bindPopup(`
+        <div style="min-width:140px">
+            <b style="color:#d32f2f;">${displayName}</b><br>
+            <hr style="margin:5px 0">
+            <b>电压：</b>${voltage || "未知"}<br>
+            <b>运营：</b>${p.operator || "南方电网"}
+        </div>
+    `);
+}
     })
     .catch(err => console.error("地图加载出错:", err));
     </script>
