@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>公司电力设施分布图</title>
+    <!-- 引入地图样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map { height: 90vh; width: 100%; } /* 地图高度占屏幕90% */
+        body { margin: 0; font-family: "Microsoft YaHei"; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <!-- 引入地图逻辑库 -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // 1. 创建地图，设置初始坐标（广东中心位置）和缩放等级
+        var map = L.map('map').setView([23.13, 113.26], 7);
+
+        // 2. 加载底图（这里用高德或OpenStreetMap的浅色图，背景干净）
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'Power Grid Data'
+        }).addTo(map);
+
+        // 3. 开始加载你的 JSON 文件
+        fetch('data.json')
+            .then(res => res.json())
+            .then(geojsonData => {
+                renderMap(geojsonData);
+            });
+function renderMap(data) {
+    L.geoJSON(data, {
+        // A. 处理“线”的样式
+        style: function (feature) {
+            var v = feature.properties.voltage;
+            return {
+                color: v === "500000" ? "#e63946" : "#457b9d", // 500kV用红色，其他用蓝色[cite: 1]
+                weight: v === "500000" ? 5 : 3,               // 高压线画粗一点
+                opacity: 0.7
+            };
+        },
+
+        // B. 处理“点”（变电站）
+        pointToLayer: function (feature, latlng) {
+            return L.circleMarker(latlng, {
+                radius: 8,
+                fillColor: "#ffca3a",
+                color: "#000",
+                weight: 1,
+                fillOpacity: 0.9
+            });
+        },
+
+        // C. 处理“点击”弹窗
+        onEachFeature: function (feature, layer) {
+            var name = feature.properties.name || "无名设施";
+            var voltage = feature.properties.voltage ? (feature.properties.voltage / 1000) + "kV" : "未知电压";
+            
+            // 绑定弹窗内容
+            layer.bindPopup(
+                "<b>设施名称：</b>" + name + "<br>" +
+                "<b>电压等级：</b>" + voltage
+            );
+
+            // 鼠标悬停效果：线路变色
+            layer.on('mouseover', function () {
+                this.setStyle({ weight: 8, opacity: 1 });
+            });
+            layer.on('mouseout', function () {
+                this.setStyle({ weight: 3, opacity: 0.7 });
+            });
+        }
+    }).addTo(map);
+}
+    </script>
+</body>
+</html>
