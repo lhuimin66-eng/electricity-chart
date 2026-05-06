@@ -2,9 +2,9 @@
 <html lang="zh-CN">
 <head>
   <!-- 引入地图的样式表 -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<!-- 引入地图的 JS 库 -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- 引入地图的 JS 库 -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>皓朗-电力市场交易数据分析平台</title>
@@ -21,6 +21,10 @@
     h1{margin-bottom:7px;font-size:28px;font-weight:750;letter-spacing:.6px}
     .subtitle{font-size:13px;color:rgba(226,232,240,.92)}
     .status{padding:8px 15px;font-size:13px;color:#e0f2fe;white-space:nowrap;border:1px solid rgba(255,255,255,.22);border-radius:999px;background:rgba(255,255,255,.13);backdrop-filter:blur(8px)}
+    .top-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .top-province-control{display:flex;align-items:center;gap:8px;padding:7px 12px;border:1px solid rgba(255,255,255,.22);border-radius:999px;background:rgba(255,255,255,.13);backdrop-filter:blur(8px)}
+    .top-province-control label{font-size:13px;color:#e0f2fe;white-space:nowrap}
+    .top-province-control select{height:30px;min-width:92px;padding:0 9px;font-size:13px;color:#0f172a;outline:0;border:1px solid rgba(255,255,255,.35);border-radius:999px;background:#fff}
     .top-analysis{position:relative;overflow:hidden;padding:18px 20px;border:1px solid rgba(255,255,255,.2);border-radius:16px;background:rgba(255,255,255,.12);backdrop-filter:blur(10px)}
     .top-analysis::before{content:"";position:absolute;left:0;top:0;width:4px;height:100%;background:linear-gradient(180deg,#67e8f9,#60a5fa)}
     .top-analysis::after{content:"AI ANALYSIS";position:absolute;right:20px;top:18px;font-size:11px;font-weight:800;letter-spacing:1.7px;color:rgba(191,219,254,.9)}
@@ -71,10 +75,10 @@
     .chart-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:18px}
     .small-chart{padding:20px}
     .forecast-section{display:none;grid-template-columns:repeat(2,1fr);gap:18px;margin-bottom:18px}
-.forecast-section.show{display:grid}
-.forecast-panel{padding:20px}
-.forecast-panel canvas{height:280px!important}
-.forecast-summary{grid-column:1/-1;padding:14px 16px;font-size:13px;line-height:1.7;color:#334155;border:1px solid #dbeafe;border-radius:14px;background:linear-gradient(135deg,#eff6ff,#f8fafc)}
+    .forecast-section.show{display:grid}
+    .forecast-panel{padding:20px}
+    .forecast-panel canvas{height:280px!important}
+    .forecast-summary{grid-column:1/-1;padding:14px 16px;font-size:13px;line-height:1.7;color:#334155;border:1px solid #dbeafe;border-radius:14px;background:linear-gradient(135deg,#eff6ff,#f8fafc)}
     .table-panel{padding:20px 22px;margin-bottom:18px}
     .table-wrap{overflow-x:auto;border:1px solid #e5e7eb;border-radius:14px}
     table{width:100%;font-size:14px;border-collapse:collapse;background:#fff}
@@ -119,7 +123,16 @@
             <h1>皓朗-电力市场交易数据分析平台</h1>
             <div class="subtitle">Generation-side and user-side trading data visualization dashboard</div>
           </div>
-          <div class="status" id="status">数据状态：正在加载</div>
+          <div class="top-actions">
+            <div class="top-province-control">
+              <label for="provinceSelect">数据省份</label>
+              <select id="provinceSelect">
+                <option value="guangdong">广东省</option>
+                <option value="jiangxi">江西省</option>
+              </select>
+            </div>
+            <div class="status" id="status">数据状态：正在加载</div>
+          </div>
         </div>
 
         <section class="top-analysis" id="analysis">
@@ -246,27 +259,29 @@
         <canvas id="chartPrice"></canvas>
       </div>
     </section>
-<section class="forecast-section" id="forecastSection">
-  <div class="panel forecast-panel">
-    <div class="panel-title">
-      <h2>未来十五日双侧成交电量预测</h2>
-      <div class="panel-tag">AI Forecast</div>
-    </div>
-    <canvas id="chartForecastVolume"></canvas>
-  </div>
 
-  <div class="panel forecast-panel">
-    <div class="panel-title">
-      <h2>未来十五日用户侧平均电价预测</h2>
-      <div class="panel-tag">AI Forecast</div>
-    </div>
-    <canvas id="chartForecastPrice"></canvas>
-  </div>
+    <section class="forecast-section" id="forecastSection">
+      <div class="panel forecast-panel">
+        <div class="panel-title">
+          <h2>未来十五日双侧成交电量预测</h2>
+          <div class="panel-tag">AI Forecast</div>
+        </div>
+        <canvas id="chartForecastVolume"></canvas>
+      </div>
 
-  <div class="forecast-summary" id="forecastSummary">
-    请选择最新时间段查看未来十五日预测结果。
-  </div>
-</section>
+      <div class="panel forecast-panel">
+        <div class="panel-title">
+          <h2>未来十五日用户侧平均电价预测</h2>
+          <div class="panel-tag">AI Forecast</div>
+        </div>
+        <canvas id="chartForecastPrice"></canvas>
+      </div>
+
+      <div class="forecast-summary" id="forecastSummary">
+        请选择最新时间段查看未来十五日预测结果。
+      </div>
+    </section>
+
     <section class="panel table-panel">
       <div class="panel-title">
         <h2>交易明细数据</h2>
@@ -287,12 +302,25 @@
         </table>
       </div>
 
-      <div class="footer-note">数据来源：广东电力市场交易公开数据整理</div>
+      <div class="footer-note" id="footerNote">数据来源：广东电力市场交易公开数据整理</div>
     </section>
   </div>
 
   <script>
     const $ = id => document.getElementById(id);
+
+    const DATA_FILES = {
+      guangdong: {
+        name: "广东省",
+        file: "data.json",
+        source: "广东电力市场交易公开数据整理"
+      },
+      jiangxi: {
+        name: "江西省",
+        file: "jiangxi.json",
+        source: "江西电力市场交易公开数据整理"
+      }
+    };
 
     const PERIODS = [
       ["all","全部数据"],
@@ -330,13 +358,21 @@
     };
 
     let allData = [];
-    let charts = {}; let forecastCharts = {}; let forecastTimer = null;
+    let charts = {}; 
+    let forecastCharts = {}; 
+    let forecastTimer = null;
+    let aiAnalyzeTimer = null;
 
     function formatNumber(value, digits = 2) {
       const num = Number(value);
       return Number.isFinite(num)
         ? num.toLocaleString(undefined,{minimumFractionDigits:digits,maximumFractionDigits:digits})
         : "-";
+    }
+
+    function getCurrentProvinceConfig() {
+      const province = $("provinceSelect").value;
+      return DATA_FILES[province] || DATA_FILES.guangdong;
     }
 
     function initPeriodSelects() {
@@ -354,7 +390,13 @@
     }
 
     function setLatestCards(item) {
-      if (!item) return;
+      if (!item) {
+        $("lastGen").innerText = "-";
+        $("lastUse").innerText = "-";
+        $("lastPrice").innerText = "-";
+        $("overviewDate").innerText = "统计日期：-";
+        return;
+      }
 
       $("lastGen").innerText = formatNumber(item["发电侧总成交量（MWh）"],3);
       $("lastUse").innerText = formatNumber(item["用户侧总成交量（MWh)"],3);
@@ -370,14 +412,15 @@
 
       const [,m,d] = dateStr.split("-").map(Number);
       const item = allData.find(i => i.日期 === `${m}.${d}`);
+      const config = getCurrentProvinceConfig();
 
       if (!item) {
-        $("status").innerText = "数据状态：当前日期暂无数据";
+        $("status").innerText = `数据状态：${config.name}当前日期暂无数据`;
         return;
       }
 
       setLatestCards(item);
-      $("status").innerText = "数据状态：已切换至 " + item.日期;
+      $("status").innerText = `数据状态：${config.name}已切换至 ${item.日期}`;
     }
 
     function baseChartOptions() {
@@ -517,44 +560,59 @@
         options:baseChartOptions()
       });
     }
-function initForecastCharts() {
-  const volumeCtx = $("chartForecastVolume").getContext("2d");
-  const priceCtx = $("chartForecastPrice").getContext("2d");
 
-  forecastCharts.volume = new Chart(volumeCtx, {
-    type: "line",
-    data: {
-      labels: [],
-      datasets: [
-        dataset("发电侧成交电量预测（MWh）", "#1d4ed8", gradient(volumeCtx, "rgba(37,99,235,.18)"), {
-          borderDash: [6, 5]
-        }),
-        dataset("用户侧成交电量预测（MWh）", "#0891b2", gradient(volumeCtx, "rgba(14,165,233,.14)"), {
-          borderDash: [6, 5]
-        })
-      ]
-    },
-    options: baseChartOptions()
-  });
+    function initForecastCharts() {
+      const volumeCtx = $("chartForecastVolume").getContext("2d");
+      const priceCtx = $("chartForecastPrice").getContext("2d");
 
-  forecastCharts.price = new Chart(priceCtx, {
-    type: "line",
-    data: {
-      labels: [],
-      datasets: [
-        dataset("用户侧平均电价预测（元/MWh）", "#b45309", gradient(priceCtx, "rgba(245,158,11,.18)"), {
-          borderDash: [6, 5],
-          spanGaps: true
-        })
-      ]
-    },
-    options: baseChartOptions()
-  });
-}
+      forecastCharts.volume = new Chart(volumeCtx, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            dataset("发电侧成交电量预测（MWh）", "#1d4ed8", gradient(volumeCtx, "rgba(37,99,235,.18)"), {
+              borderDash: [6, 5]
+            }),
+            dataset("用户侧成交电量预测（MWh）", "#0891b2", gradient(volumeCtx, "rgba(14,165,233,.14)"), {
+              borderDash: [6, 5]
+            })
+          ]
+        },
+        options: baseChartOptions()
+      });
+
+      forecastCharts.price = new Chart(priceCtx, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            dataset("用户侧平均电价预测（元/MWh）", "#b45309", gradient(priceCtx, "rgba(245,158,11,.18)"), {
+              borderDash: [6, 5],
+              spanGaps: true
+            })
+          ]
+        },
+        options: baseChartOptions()
+      });
+    }
+
     async function loadData() {
+      const config = getCurrentProvinceConfig();
+
       try {
-        const res = await fetch("data.json?v=" + Date.now());
+        $("status").innerText = `数据状态：正在加载${config.name}数据`;
+
+        const res = await fetch(config.file + "?v=" + Date.now());
+
+        if (!res.ok) {
+          throw new Error(`${config.file} 加载失败`);
+        }
+
         allData = await res.json();
+
+        if (!Array.isArray(allData)) {
+          throw new Error(`${config.file} 格式错误，最外层应该是数组`);
+        }
 
         renderDashboard();
         calcMonthAvg();
@@ -564,11 +622,18 @@ function initForecastCharts() {
         if (last) {
           const [m,d] = last.日期.split(".").map(Number);
           $("selectDate").value = `2026-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+        } else {
+          $("selectDate").value = "";
         }
 
-        $("status").innerText = "数据状态：已完成更新";
+        $("status").innerText = `数据状态：${config.name}数据已完成更新`;
+        $("footerNote").innerText = `数据来源：${config.source}`;
       } catch (e) {
-        $("status").innerText = "数据状态：加载异常，请检查 data.json 文件";
+        allData = [];
+        renderDashboard();
+        calcMonthAvg();
+        render();
+        $("status").innerText = `数据状态：加载异常，请检查 ${config.file} 文件`;
         console.error(e);
       }
     }
@@ -626,13 +691,13 @@ function initForecastCharts() {
       const prev = month > 1 ? calcSingleMonth(month - 1) : null;
 
       $("monthTitle").innerText = `2026年${month}月月度统计指标`;
-      $("monthAvgGen").innerText = formatNumber(curr.avgGen,2);
-      $("monthAvgUser").innerText = formatNumber(curr.avgUser,2);
+      $("monthAvgGen").innerText = curr.dayCount ? formatNumber(curr.avgGen,2) : "暂无数据";
+      $("monthAvgUser").innerText = curr.dayCount ? formatNumber(curr.avgUser,2) : "暂无数据";
       $("monthAvgPrice").innerText = curr.avgPrice == null ? "暂无数据" : formatNumber(curr.avgPrice,2);
       $("monthDayCount").innerText = curr.dayCount;
 
-      $("genRate").innerHTML = rateHtml(curr.avgGen, prev?.avgGen);
-      $("userRate").innerHTML = rateHtml(curr.avgUser, prev?.avgUser);
+      $("genRate").innerHTML = rateHtml(curr.dayCount ? curr.avgGen : null, prev?.avgGen);
+      $("userRate").innerHTML = rateHtml(curr.dayCount ? curr.avgUser : null, prev?.avgUser);
       $("priceRate").innerHTML = rateHtml(curr.avgPrice, prev?.avgPrice);
     }
 
@@ -654,106 +719,113 @@ function initForecastCharts() {
       series.forEach((data, i) => chart.data.datasets[i].data = data);
       chart.update();
     }
-let aiAnalyzeTimer = null;
 
-function updateAIAnalysis(data) {
-  clearTimeout(aiAnalyzeTimer);
+    function updateAIAnalysis(data) {
+      clearTimeout(aiAnalyzeTimer);
 
-  aiAnalyzeTimer = setTimeout(async () => {
-    $("analysis").innerHTML = `
-      <h3>AI 实时分析</h3>
-      <p>正在根据当前时段数据生成分析，请稍候...</p>
-    `;
+      aiAnalyzeTimer = setTimeout(async () => {
+        const config = getCurrentProvinceConfig();
 
-    try {
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          period: $("period").selectedOptions[0].text,
-          data
-        })
-      });
+        $("analysis").innerHTML = `
+          <h3>AI 实时分析</h3>
+          <p>正在根据当前时段数据生成分析，请稍候...</p>
+        `;
 
-      const result = await res.json();
+        try {
+          const res = await fetch("/api/analyze", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              province: config.name,
+              period: $("period").selectedOptions[0].text,
+              data
+            })
+          });
 
-      if (!res.ok) {
-        throw new Error(result.error || "AI 分析失败");
-      }
+          const result = await res.json();
 
-      $("analysis").innerHTML = `
-        <h3>${result.source === "cache" ? "缓存分析" : "AI 实时分析"}</h3>
-        <p>${result.analysis}</p>
-      `;
-    } catch (error) {
-      $("analysis").innerHTML = analysisText[$("period").value] || analysisText.all;
-      console.error(error);
+          if (!res.ok) {
+            throw new Error(result.error || "AI 分析失败");
+          }
+
+          $("analysis").innerHTML = `
+            <h3>${result.source === "cache" ? "缓存分析" : "AI 实时分析"}</h3>
+            <p>${result.analysis}</p>
+          `;
+        } catch (error) {
+          $("analysis").innerHTML = analysisText[$("period").value] || analysisText.all;
+          console.error(error);
+        }
+      }, 300);
     }
-  }, 300);
-}
+
     function isLatestPeriod() {
-  return $("period").value === "16-30-4";
-}
+      return $("period").value === "16-30-4";
+    }
 
-function hideForecast() {
-  $("forecastSection").classList.remove("show");
-}
+    function hideForecast() {
+      $("forecastSection").classList.remove("show");
+    }
 
-function updateForecastChart(chart, labels, ...series) {
-  chart.data.labels = labels;
-  series.forEach((data, i) => chart.data.datasets[i].data = data);
-  chart.update();
-}
+    function updateForecastChart(chart, labels, ...series) {
+      chart.data.labels = labels;
+      series.forEach((data, i) => chart.data.datasets[i].data = data);
+      chart.update();
+    }
 
-function updateForecast(data) {
-  clearTimeout(forecastTimer);
+    function updateForecast(data) {
+      clearTimeout(forecastTimer);
 
-  if (!isLatestPeriod()) {
-    hideForecast();
-    return;
-  }
-
-  $("forecastSection").classList.add("show");
-  $("forecastSummary").innerText = "AI 正在根据最近十五日数据生成未来十五日预测，请稍候...";
-
-  forecastTimer = setTimeout(async () => {
-    try {
-      const res = await fetch("/api/forecast", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          period: $("period").selectedOptions[0].text,
-          data
-        })
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) {
-        throw new Error(result.error || "AI 预测失败");
+      if (!isLatestPeriod()) {
+        hideForecast();
+        return;
       }
 
-      const forecast = Array.isArray(result.forecast) ? result.forecast : [];
-      const dates = forecast.map(i => i.date);
-      const gen = forecast.map(i => Number(i.genVolume) || 0);
-      const user = forecast.map(i => Number(i.userVolume) || 0);
-      const price = forecast.map(i => i.avgPrice == null ? null : Number(i.avgPrice));
+      $("forecastSection").classList.add("show");
+      $("forecastSummary").innerText = "AI 正在根据最近十五日数据生成未来十五日预测，请稍候...";
 
-      updateForecastChart(forecastCharts.volume, dates, gen, user);
-      updateForecastChart(forecastCharts.price, dates, price);
+      forecastTimer = setTimeout(async () => {
+        const config = getCurrentProvinceConfig();
 
-      const sourceText = result.source === "cache" ? "缓存预测" : "AI 实时预测";
-      $("forecastSummary").innerText = `${sourceText}：${result.summary || "预测结果仅供趋势参考。"}`;
-    } catch (error) {
-      $("forecastSummary").innerText = "AI 预测暂不可用，请稍后重试。";
-      console.error(error);
+        try {
+          const res = await fetch("/api/forecast", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              province: config.name,
+              period: $("period").selectedOptions[0].text,
+              data
+            })
+          });
+
+          const result = await res.json();
+
+          if (!res.ok) {
+            throw new Error(result.error || "AI 预测失败");
+          }
+
+          const forecast = Array.isArray(result.forecast) ? result.forecast : [];
+          const dates = forecast.map(i => i.date);
+          const gen = forecast.map(i => Number(i.genVolume) || 0);
+          const user = forecast.map(i => Number(i.userVolume) || 0);
+          const price = forecast.map(i => i.avgPrice == null ? null : Number(i.avgPrice));
+
+          updateForecastChart(forecastCharts.volume, dates, gen, user);
+          updateForecastChart(forecastCharts.price, dates, price);
+
+          const sourceText = result.source === "cache" ? "缓存预测" : "AI 实时预测";
+          $("forecastSummary").innerText = `${sourceText}：${result.summary || "预测结果仅供趋势参考。"}`;
+        } catch (error) {
+          $("forecastSummary").innerText = "AI 预测暂不可用，请稍后重试。";
+          console.error(error);
+        }
+      }, 300);
     }
-  }, 300);
-}
+
     function render() {
       const data = filterData();
 
@@ -786,18 +858,21 @@ function updateForecast(data) {
     initPeriodSelects();
     initCharts();
     initForecastCharts();
-    
 
     $("selectDate").addEventListener("change", selectByDate);
     $("monthSelectInline").addEventListener("change", calcMonthAvg);
+    $("provinceSelect").addEventListener("change", () => {
+      hideForecast();
+      loadData();
+    });
 
     loadData();
   </script>
 
-<!-- 地图容器 -->
-<section style="padding: 20px;">
+  <!-- 地图容器 -->
+  <section style="padding: 20px;">
     <h2 style="text-align: center;">广东电网物理分布示意图</h2>
     <iframe src="map.html" width="100%" height="600px" style="border: 2px solid #ccc; border-radius: 10px;"></iframe>
-</section>
+  </section>
 </body>
 </html>
