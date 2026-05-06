@@ -25,7 +25,7 @@
         }).addTo(map);
 
         // 3. 开始加载你的 JSON 文件
-        fetch('data.json')
+       fetch('export.geojson')
             .then(res => res.json())
             .then(geojsonData => {
                 renderMap(geojsonData);
@@ -52,6 +52,16 @@ function renderMap(data) {
                 fillOpacity: 0.9
             });
         },
+pointToLayer: function (feature, latlng) {
+    // 专门给变电站（点要素）设计的样式
+    return L.circleMarker(latlng, {
+        radius: 10,           // 圆圈大小
+        fillColor: "#ffec3d", // 黄色填充，代表电力设施
+        color: "#000",        // 黑色边框
+        weight: 1,
+        fillOpacity: 0.9
+    });
+},
 
         // C. 处理“点击”弹窗
         onEachFeature: function (feature, layer) {
