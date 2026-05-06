@@ -25,7 +25,7 @@
         }).addTo(map);
 
         // 3. 开始加载你的 JSON 文件
-       fetch('export.geojson')
+       fetch('export(1).geojson')
             .then(res => res.json())
             .then(geojsonData => {
                 renderMap(geojsonData);
